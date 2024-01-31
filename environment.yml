@@ -7,11 +7,17 @@ dependencies:
   - _openmp_mutex=4.5=2_gnu
   - alsa-lib=1.2.10=hd590300_0
   - attr=2.5.1=h166bdaf_1
+  - binutils=2.40=hdd6e379_0
+  - binutils_impl_linux-64=2.40=hf600244_0
+  - binutils_linux-64=2.40=hbdbef99_2
   - bzip2=1.0.8=hd590300_5
   - c-ares=1.26.0=hd590300_0
+  - c-compiler=1.7.0=hd590300_0
   - ca-certificates=2023.11.17=hbcca054_0
   - cairo=1.18.0=h3faef2a_0
   - clhep=2.4.6.2=h27087fc_0
+  - cmake=3.28.2=hcfe8598_0
+  - cxx-compiler=1.7.0=h00ab1b0_0
   - dbus=1.13.6=h5008d03_3
   - expat=2.5.0=hcb278e6_1
   - font-ttf-dejavu-sans-mono=2.37=hab24e00_0
@@ -22,6 +28,9 @@ dependencies:
   - fonts-conda-ecosystem=1=0
   - fonts-conda-forge=1=0
   - freetype=2.12.1=h267a509_2
+  - gcc=12.3.0=h8d2909c_2
+  - gcc_impl_linux-64=12.3.0=he2b93b0_4
+  - gcc_linux-64=12.3.0=h76fc315_2
   - geant4=11.1.3=py311hfd6d702_0
   - geant4-data-abla=3.1=0
   - geant4-data-emlow=8.2=hd8ed1ab_0
@@ -40,6 +49,9 @@ dependencies:
   - graphite2=1.3.13=h58526e2_1001
   - gst-plugins-base=1.22.9=h8e1006c_0
   - gstreamer=1.22.9=h98fc4e7_0
+  - gxx=12.3.0=h8d2909c_2
+  - gxx_impl_linux-64=12.3.0=he2b93b0_4
+  - gxx_linux-64=12.3.0=h8a814eb_2
   - harfbuzz=8.3.0=h3d44ed6_0
   - hepmc2=2.06.07=he1b5a44_0
   - hepmc3=3.2.3=h0c14de7_0
@@ -65,6 +77,7 @@ dependencies:
   - libexpat=2.5.0=hcb278e6_1
   - libffi=3.4.2=h7f98852_5
   - libflac=1.4.3=h59595ed_0
+  - libgcc-devel_linux-64=12.3.0=h8bca6fd_104
   - libgcc-ng=13.2.0=h807b86a_4
   - libgcrypt=1.10.3=hd590300_0
   - libgfortran-ng=13.2.0=h69a702a_4
@@ -84,14 +97,17 @@ dependencies:
   - libopus=1.3.1=h7f98852_1
   - libpng=1.6.39=h753d276_0
   - libpq=16.1=h33b98f1_7
+  - libsanitizer=12.3.0=h0f45ef3_4
   - libselinux-cos6-x86_64=2.0.94=h9b0a68f_1105
   - libsepol-cos6-x86_64=2.0.41=h9b0a68f_1105
   - libsndfile=1.2.2=hc60ed4a_1
   - libsqlite=3.44.2=h2797004_0
   - libssh2=1.11.0=h0841786_0
+  - libstdcxx-devel_linux-64=12.3.0=h8bca6fd_104
   - libstdcxx-ng=13.2.0=h7e041cc_4
   - libsystemd0=255=h3516f8a_0
   - libuuid=2.38.1=h0b41bf4_0
+  - libuv=1.46.0=hd590300_0
   - libvorbis=1.3.7=h9c3ff4c_0
   - libx11-common-cos6-x86_64=1.6.4=h9b0a68f_1105
   - libx11-cos6-x86_64=1.6.4=h9b0a68f_1105
@@ -114,16 +130,17 @@ dependencies:
   - nspr=4.35=h27087fc_0
   - nss=3.97=h1d7d5a4_0
   - numpy=1.26.3=py311h64a7726_0
-  - openssl=3.2.0=hd590300_1
+  - openssl=3.2.1=hd590300_0
   - pcre2=10.42=hcad00b1_0
   - pip=23.3.2=pyhd8ed1ab_0
-  - pixman=0.43.0=h59595ed_0
+  - pixman=0.43.2=h59595ed_0
   - pthread-stubs=0.4=h36c2ea0_1001
   - pulseaudio-client=16.1=hb77b528_5
   - python=3.11.7=hab00c5b_1_cpython
   - python_abi=3.11=4_cp311
   - qt-main=5.15.8=h450f30e_18
   - readline=8.2=h8228510_1
+  - rhash=1.4.4=hd590300_0
   - setuptools=69.0.3=pyhd8ed1ab_0
   - sysroot_linux-64=2.12=he073ed8_16
   - tauloa=1.1.8=h2cc385e_0
