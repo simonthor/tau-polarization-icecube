@@ -1,0 +1,85 @@
+/**
+ * Example of use of tauola C++ interface. Pythia events are
+ * generated with a stable tau. Taus are subsequently decay via
+ * tauola.
+ *
+ * @author Nadia Davidson
+ * @date 17 June 2008
+ */
+
+#include "../tauolaCInterfaces/Tauola.h"
+#include "../eventRecordInterfaces/TauolaHepMCEvent.h"
+
+//pythia header files
+#include "Pythia.h"
+#include "HepMCInterface.h"
+
+//MC-TESTER header files
+#include "Generate.h"
+#include "HepMCEvent.H"
+#include "Setup.H"
+
+using namespace std;
+using namespace Pythia8; 
+
+int NumberOfEvents = 10000;
+
+int main(void){
+  HepMC::I_Pythia8 ToHepMC;
+  
+  // Initialization of pythia
+  Pythia pythia;
+  Event& event = pythia.event;
+
+  Tauola t;
+  t.initialize();
+
+  MC_Initialize();
+
+  //Select process and decay to taus
+  pythia.readString("WeakSingleBoson:all = on");
+  // Switch off all Z0 decays and then switch back on those to taus.
+  pythia.readString("23:onMode = off"); 
+  pythia.readString("23:onIfMatch = 15 -15");
+  pythia.readString("111:onMode = off");
+  pythia.readString("HadronLevel:Hadronize = off");
+  pythia.readString("SpaceShower:QEDshower = off");
+  pythia.readString("SpaceShower:QEDshowerByL = off");
+  pythia.readString("SpaceShower:QEDshowerByQ = off");
+  pythia.readString("23:onMode  = off");      //    ! To switch off all gamma*/Z= decays
+  pythia.readString("23:onIfAny = 15");        //   ! To switch on the tau decay channel
+  pythia.readString("PartonLevel:ISR = off");   //  ! To switch off all initial-state showers
+     pythia.readString("PartonLevel:FSR = off");    // ! To switch off all final-state showers // somehow it kills the project
+   pythia.readString("HadronLevel:all = off");    // ! To switcf off hadronization and decay
+    pythia.readString("WeakSingleBoson:ffbar2gmZ = on");
+    //  pythia.particleData.readString("15:mayDecay = off");
+      pythia.particleData.readString("15:mayDecay = on");
+  //electron positron collisions
+  pythia.init( 11, -11, 92.);
+  // Begin event loop. Generate event.
+  for (int iEvent = 0; iEvent < NumberOfEvents; ++iEvent) {
+if(iEvent%100==0) cout<<iEvent<<endl;
+    if (!pythia.next()) continue;
+
+    // Convert event record to Tau format
+    HepMC::GenEvent * HepMCEvt = new HepMC::GenEvent();
+    ToHepMC.fill_next_event(event, HepMCEvt);
+    //cout << "event no " << iEvent << endl;
+    //cout << "BEFORE:"<<endl;
+    //HepMCEvt->print();
+    //   TauolaHepMCEvent * t_event = new TauolaHepMCEvent(HepMCEvt);
+    //  t.processEvent(t_event);
+    HepMCEvent temp_event(*HepMCEvt);
+    MC_Analyze(&temp_event);
+
+if(iEvent>=NumberOfEvents-5)
+{  pythia.event.list();
+  HepMCEvt->print();
+}
+    //clean up
+    delete HepMCEvt;
+    //   delete t_event;
+  }
+  MC_Finalize();
+}
+

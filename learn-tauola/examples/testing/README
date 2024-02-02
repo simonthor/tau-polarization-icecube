@@ -1,0 +1,95 @@
+This directory contains a number of MC-TESTER tests which can be
+performed to validate the currently installed version of TAUOLA 
+and it's iterface against a benchmark version. It uses the
+example "taumain_pythia_example" so any changes to this will also 
+alter the tests. Some variable for the test. eg. number of events
+can be changed in test.inc
+__________
+IMPORTANT: THIS IS TESTING: collisions of antiprotons are in use !
+----------
+
+###########################################################################
+WARNING: This directory is not adapted to installation scripts for LCG
+         as it requires more manual configuration than other examples
+
+Before running any tests from this directory, make sure that:
+- all paths (HepMC, MC-TESTER, Pythia8) have been provided when
+  configuring TAUOLA/examples
+- ROOT is configured properly
+- PYTHIA8DATA, MCTESTERLOCATION and HEPMCLOCATION environmental
+  variables are set correctly (to Pythia8 xml config files, MC-TESTER
+  and HepMC installation directories respectively)
+- LD_LIBRARY_PATH variable contains paths to MC-TESTER and HepMC libraries
+###########################################################################
+
+To run, compile taumain_pythia_example.c , then type "make" in 
+this directory. MC-TESTER booklets can be found in the following 
+subdirectories. You can run a single test by typing "make <booklet name>" 
+in the corresponding subdirectory.
+
+- H/ 
+
+  tester.H.Pi.mass1.pdf 
+  --------------------- 
+  The tau decay mode is restricted to tau->pi nu. Interesting plots to
+  look at are the invariant mass of the pi+ pi- which should be narrower
+  than the case when spin correlations are off.
+  The user histograms allow transverse spin correlations to be check.
+  Please see documentation for explanation of these.
+
+  tester.H.Pi.mass2.pdf
+  ---------------------
+  Similar to tester.H.Pi.mass1.pdf but invariant mass squared is plotted
+  rather than invariant mass. The user can check that the plot
+  of pi- nu nu (which is equivalent to pi+ energy) is flat. ie. no
+  polarisation. 
+
+  tester.H.Rho.pdf
+  ----------------
+  The tau decay mode is restricted to tau->rho nu, rho->pi+/- pi.
+  The user histograms are useful for studying the transverse spin effect.
+  See documentation for more details.
+
+  tester.HA.Pi.pdf
+  ----------------
+  The same as tester.H.Pi.mass1.pdf but assuming a scalar-pseudoscalar
+  higgs with mixing angle of pi/4.
+
+  tester.HA.Rho.pdf
+  -----------------
+  The same as tester.H.Rho.pdf but assuming a scalar-pseudoscalar
+  higgs with mixing angle of pi/4. 
+
+
+- Z/
+
+  tester.Z.Pi.mass1.pdf 
+  --------------------- 
+  Simliar test to tester.H.Pi.mass1.pdf. For the Z the pi+pi-
+  invariant mass distribution should be wider than the no-spin case.
+
+  tester.Z.Pi.mass2.pdf
+  ---------------------
+  Simliar test to tester.H.Pi.mass2.pdf. For the Z case the pi+ 
+  energy spectrum should show some polarisation.
+
+- W/
+  tester.W+.pdf and tester.W-.pdf
+  -------------------------------
+  Simliar tests to tester.H.Pi.mass2.pdf. The pi+ (pi-) 
+  energy spectrum should show full polarisation.
+
+
+- H+-/
+  tester.H+.pdf	and tester.H-.pdf
+  -------------------------------
+  Simliar tests to tester.H.Pi.mass2.pdf. The pi+ (pi-) 
+  energy spectrum should show full polarisation.
+
+
+- tau/
+
+  Still to do...
+
+--
+Last updated: T. Przedzinski, 3.XII.2013

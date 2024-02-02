@@ -1,0 +1,28 @@
+EW-PLOTS - create SANC-module specific plots.
+
+Note that this program is for debug and testing purposes mainly.
+
+To run:
+- Configure and 'make' in the examples directory
+- Execute 'make' in the directory 'examples/testing'
+- Copy SANC tables into the 'examples/testing/EW-PLOTS' directory.
+- Generate Born-level tables using the SANC module
+  ( for details see comments in SANC/SANCinterface.cxx )
+- Copy the appropriate Born-level table into the 
+  'examples/testing/EW-PLOTS' directory as table11-11.txt;
+
+    For example, for PDG ID = 1, the appropriate input files are:
+
+    table1-1.txt   - SANC table for PDG ID = 1
+    table11-11.txt - SANC table with Born-level data created for PDG ID = 1
+
+- Execute './plots.exe'
+- Execute 'root -b -l draw.C' to create plots
+
+The resulting plots are eqivalent to Fig3a and Fig3b of the paper in pb
+Note that we pretabulate d sigma /d cos theta [pb].
+It means that the factor of 2pi is already included as well as flux
+and spin/color factors.
+
+If stuck on any of these steps, see the documentation or READMEs
+of the directories mentioned above.

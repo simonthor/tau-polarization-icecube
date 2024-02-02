@@ -1,0 +1,249 @@
+/**
+ * Example of use of tauola C++ interface. Pythia events are
+ * generated with a stable tau. Taus are subsequently decay via
+ * tauola.
+ *
+ * @author Nadia Davidson
+ * @date 17 June 2008
+ */
+
+#include "Log.h"
+#include "Tauola.h"
+#include "TauolaHepMCEvent.h"
+
+//pythia header files
+#include "Pythia.h"
+#include "HepMCInterface.h"
+
+//MC-TESTER header files
+#include "Generate.h"
+#include "HepMCEvent.H"
+#include "Setup.H"
+#include "MC4Vector.H"
+using namespace std;
+using namespace Pythia8; 
+
+bool   initialized=false;  // control variable for printouts of select method
+bool ShowersOn=false;
+int NumberOfEvents = 10000;
+double dot_product(MC4Vector v1, MC4Vector v2){
+  return v1.GetX1()*v2.GetX1()+v1.GetX2()*v2.GetX2()+v1.GetX3()*v2.GetX3();
+}
+
+/** Search for all mothers of given particle ignoring self-decays */
+HEPParticleList* FindMothers(HEPParticle *part,HepMCEvent *evt,bool ignoreSelf)
+{
+	int id = part->GetId();
+	HEPParticleList *ret = new HEPParticleList();
+
+	//Look throught whole event
+
+	for(int i=1;i<evt->GetNumOfParticles();i++)
+	{
+		HEPParticle *p = evt->GetParticle(i);
+		HEPParticleList *list = NULL;
+		list = p->GetDaughterList(NULL);
+
+		//Recursive search for daughters ignoring self-decays
+		
+		HEPParticleListIterator da(*list);
+		if(ignoreSelf)
+			for(HEPParticle *d = da.first(); d!=0; d=da.next())
+			{
+				if(d->GetPDGId()==p->GetPDGId())
+				{
+					HEPParticleList *sub = d->GetDaughterList(NULL);
+					HEPParticleListIterator subda(*sub);
+					for(HEPParticle *sd = subda.first(); sd!=0; sd=subda.next())
+						list->push_back(sd);
+					delete sub;
+				}
+			}
+
+		if(list->contains(id))
+		{
+			if(ret->empty()) { ret->push_back(p); continue; }
+			bool add=true;
+			HEPParticleListIterator clean(*ret);
+			for(HEPParticle *c = clean.first(); c!=0; c=clean.next())
+				if(c->GetPDGId()==p->GetPDGId()) add=false;
+			if(add) ret->push_back(p);
+		}
+		delete list;
+	}
+	return ret;
+}
+
+bool select(HepMCEvent &temp_event){
+                      // input parameters
+
+    bool   active=true; // Selection switch
+    double Csign= 1;    // Sign of cos theta to be selected
+    double Sqmin=90.;   // Min Invariant mass of Z 
+    double Sqmax=94.;   // Max Invariant mass of Z
+    double IFlav=11;    // Flavor of the beam
+    IFlav=IFlav*IFlav;  // ony square matters.
+
+  if(!initialized){
+
+    cout<<" -------------------------------------"<<endl;
+    cout<<"  INITIALIZATION of method selecting events for MC tester action"<<endl;
+    cout<<"  PARAMETER SET:"<<endl;
+    cout<<"    selection is active? = "<<active<<endl;
+    cout<<"    Cos theta sign?      = "<<Csign<<endl;
+    cout<<"    Min sqrt(S)          = "<< Sqmin<<endl;
+    cout<<"    Max sqrt(S)          = "<<Sqmax<<endl;
+    cout<<"    eff Beam PDG*PDG     = "<<IFlav<<endl;
+    cout<<"  END of select initialization:"<<endl;
+    cout<<" -------------------------------------"<<endl;
+    initialized=true;
+  }
+
+  if(!active) {return true;};
+    HEPParticleList* Lista=NULL;
+    //tau plus
+    Lista=temp_event.FindParticle(-15,NULL); // minus bo pierwszy e+
+    HEPParticleListIterator buf(*Lista);
+    HEPParticle *tauPlus=buf.first();
+    delete Lista;
+    //tau minus
+    Lista = temp_event.FindParticle(15,NULL);
+    HEPParticleListIterator buf2(*Lista);
+    HEPParticle *tauMinus=buf2.first();
+    delete Lista;
+    //grandmothers
+    HEPParticleList *mums = FindMothers(tauPlus,&temp_event,true);
+    //for now - assuming only one mid-point particle
+    //(easier, but still can be expanded)
+    HEPParticleList *grandMums = FindMothers(mums->firstParticle,&temp_event,false);
+    //Assuming only two grandmothers (it's easier that way but not necessary)
+    HEPParticle *grand1 = grandMums->firstParticle;
+    HEPParticle *grand2 = grandMums->lastParticle;
+
+    //And so we get four particles:
+    //    cout<<"\n\nRESULTS:"<<endl;
+    // tauPlus->ls();
+    // tauMinus->ls();
+    // grand1->ls();
+    // grand2->ls();
+
+    MC4Vector QP=tauPlus->GetP4(); 
+    MC4Vector QM=tauMinus->GetP4(); 
+    MC4Vector PP=grand1->GetP4(); 
+    MC4Vector PM=grand2->GetP4(); 
+    MC4Vector QQ=QP+QM;
+    double    ss=sqrt(QQ.GetX0()*QQ.GetX0()-QQ.GetX1()*QQ.GetX1()
+                     -QQ.GetX2()*QQ.GetX2()-QQ.GetX3()*QQ.GetX3());
+    QQ.SetM(ss);
+
+    QP.BoostP(QQ);
+    QM.BoostP(QQ);
+    PP.BoostP(QQ);
+    PM.BoostP(QQ);
+
+    double costheta1 = dot_product(QP,PP)/(QP.Length()*PP.Length());
+    if(grand1->GetPDGId()>0) costheta1 = -costheta1;
+                            // /root/LOCAL/MC-TESTER-local/HEPEvent
+
+    //temp_event.ls(); //Print whole event if needed to re-check
+    //   if(iEvent==2) exit(0); //Just to check: stop after few events.
+
+    bool selecto=true;   // default is when there is no selection at all
+                         //    cout<<"selecto= "<<selecto<<endl;
+    selecto=(grand1->GetPDGId()*grand1->GetPDGId()==121)&&Csign*costheta1>0.&&ss>Sqmin&&ss<Sqmax;
+  return selecto;
+}
+
+int main(int argc,char **argv){
+
+  Log::SummaryAtExit();
+  // Initialization of pythia
+  HepMC::I_Pythia8 ToHepMC;
+  Pythia pythia;
+  Event& event = pythia.event;
+
+  if(argc>3) NumberOfEvents=atoi(argv[3]);
+
+  if(argc>2) ShowersOn=atoi(argv[2]);
+  if(!ShowersOn)
+  {
+    //pythia.readString("HadronLevel:all = off");
+    pythia.readString("HadronLevel:Hadronize = off");
+    pythia.readString("SpaceShower:QEDshower = off");
+    pythia.readString("SpaceShower:QEDshowerByL = off");
+    pythia.readString("SpaceShower:QEDshowerByQ = off");
+  }
+  pythia.readString("PartonLevel:ISR = off");
+  pythia.readString("PartonLevel:FSR = off");
+  pythia.particleData.readString("15:mayDecay = off"); //<- uncomment for pythia+tauola
+  if(argc>1)  //pre-set configs
+  {
+    pythia.readFile(argv[1]);
+      pythia.init( 11, -11, 500); //e+ e- collisions
+      //    pythia.init( -2212, -2212, 14000.0); //proton proton collisions
+  }
+  else        //default config
+  {
+    pythia.readString("WeakSingleBoson:ffbar2gmZ = on");
+    pythia.readString("23:onMode = off"); 
+    pythia.readString("23:onIfAny = 15");
+    //pythia.readString("23:onIfMatch = 15 -15");
+    pythia.init( 11, -11, 92.);          //electron positron collisions
+  }
+
+  //Set up TAUOLA
+  if(argc>4){
+    Tauola::setSameParticleDecayMode(atoi(argv[4]));
+    Tauola::setOppositeParticleDecayMode(atoi(argv[4]));
+  }
+  if(argc>5){
+    Tauola::setHiggsScalarPseudoscalarMixingAngle(atof(argv[5]));
+    Tauola::setHiggsScalarPseudoscalarPDG(25);
+  }
+  Tauola::initialize();
+  //Tauola::spin_correlation.setAll(false);
+
+  MC_Initialize();
+
+  // Begin event loop. Generate event.
+  for (int iEvent = 0; iEvent < NumberOfEvents; ++iEvent) {
+    if(iEvent%1000==0) Log::Info()<<"Event: "<<iEvent<<endl;
+    if (!pythia.next()) continue;
+
+    // Convert event record to HepMC
+    HepMC::GenEvent * HepMCEvt = new HepMC::GenEvent();
+    ToHepMC.fill_next_event(event, HepMCEvt);
+
+    //run TAUOLA on the event
+    TauolaHepMCEvent * t_event = new TauolaHepMCEvent(HepMCEvt);
+    t_event->decayTaus();
+    delete t_event; 
+
+    //run MC-TESTER on the event
+    HepMCEvent temp_event(*HepMCEvt,false);
+
+
+    bool selecto= select(temp_event);
+        if (selecto) MC_Analyze(&temp_event);
+ 
+    //------------------------------------------------------------------------
+    //Filtering event record ends here ---------------------------------------
+    //------------------------------------------------------------------------
+
+    //print some events at the end of the run
+    if(iEvent>=NumberOfEvents-5){  
+      Log::RedirectOutput(Log::Info());
+      pythia.event.list();
+      HepMCEvt->print();
+      Log::RevertOutput();
+    }
+    
+    //clean up HepMC event
+    delete HepMCEvt;  
+  }
+  Log::RedirectOutput(Log::Info());
+  pythia.statistics();
+  Log::RevertOutput();
+  MC_Finalize();
+}
+
