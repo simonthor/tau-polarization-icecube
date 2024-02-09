@@ -52,7 +52,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
   // default particle kinematic
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
   // Shoot a tau neutrino. PDG ID = 16
-  G4ParticleDefinition* particle = particleTable->FindParticle(14);
+  G4ParticleDefinition* particle = particleTable->FindParticle(12);
   fParticleGun->SetParticleDefinition(particle);
   fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0.,0.,1.));
   fParticleGun->SetParticleEnergy(10.*GeV);
@@ -99,9 +99,10 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
      "MyCode0002",JustWarning,msg);
   }
 
+  G4double x0 = (G4UniformRand()-0.5) * envSizeXY/2;
+  G4double y0 = (G4UniformRand()-0.5) * envSizeXY/2;
   G4double z0 = -0.55 * envSizeZ;
-
-  fParticleGun->SetParticlePosition(G4ThreeVector(envSizeXY/4,0.,z0));
+  fParticleGun->SetParticlePosition(G4ThreeVector(x0,y0,z0));
 
   fParticleGun->GeneratePrimaryVertex(anEvent);
 }
