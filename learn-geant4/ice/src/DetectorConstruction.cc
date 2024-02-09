@@ -52,7 +52,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   // Get nist material manager
   G4NistManager* nist = G4NistManager::Instance();
 
-  // Envelope parameters
+  // Detector parameters
   //
   G4double env_sizeXY = 1.*km, env_sizeZ = 1.*km;
   G4Material* env_mat = nist->FindOrBuildMaterial("G4_WATER");
@@ -85,28 +85,29 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     checkOverlaps);                            // overlaps checking
 
   //
-  // Envelope
+  // Detector
   //
-  auto solidEnv = new G4Box("Envelope",                    // its name
+  auto solidEnv = new G4Box("Detector",                    // its name
     0.5 * env_sizeXY, 0.5 * env_sizeXY, 0.5 * env_sizeZ);  // its size
 
   auto logicEnv = new G4LogicalVolume(solidEnv,  // its solid
     env_mat,                                     // its material
-    "Envelope");                                 // its name
+    "DetectorLog");                                 // its name
 
   new G4PVPlacement(nullptr,  // no rotation
     G4ThreeVector(),          // at (0,0,0)
     logicEnv,                 // its logical volume
-    "Envelope",               // its name
+    "DetectorPhys",               // its name
     logicWorld,               // its mother  volume
     false,                    // no boolean operation
     0,                        // copy number
     checkOverlaps);           // overlaps checking
 
 
-  G4Region* neutrinoInteractionRegion = new G4Region("Detector");
-  G4RegionStore::GetInstance()->Register(neutrinoInteractionRegion);
+  G4Region* neutrinoInteractionRegion = new G4Region("DetectorLog");
+  logicEnv->SetRegion(neutrinoInteractionRegion);
   neutrinoInteractionRegion->AddRootLogicalVolume(logicEnv);
+  // G4RegionStore::GetInstance()->Register(neutrinoInteractionRegion);
   // Set water as scoring volume
   //
   fScoringVolume = logicEnv;

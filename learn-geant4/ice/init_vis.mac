@@ -9,8 +9,8 @@
 # Activate neutrino interactions
 /physics_lists/em/NeutrinoActivation true
 /physics_lists/em/NuETotXscActivation true
-/physics_lists/em/NuDetectorName Detector
-/physics_lists/em/NuNucleusBias 1.0e30
+/physics_lists/em/NuDetectorName DetectorLog
+/physics_lists/em/NuNucleusBias 1e18
 #
 # Change the default number of threads (in multi-threaded mode)
 #/run/numberOfThreads 4
