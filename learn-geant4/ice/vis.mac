@@ -117,3 +117,7 @@
 #
 # For file-based drivers, use this to create an empty detector view:
 #/vis/viewer/flush
+# 
+# View all events overlayed and accumulated
+# /vis/enable
+# /vis/viewer/flush
