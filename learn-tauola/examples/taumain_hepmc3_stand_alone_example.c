@@ -31,7 +31,7 @@ GenEvent make_simple_tau_event() {
   GenEvent evt(Units::GEV,Units::CM);
 
   // Create four vectors for the electrons
-  double ele_mass_sqr = parmas_.amell*parmas_.amell;
+  double ele_mass_sqr = parmas_.amell*parmas_.amell; // parmas_.amell is the electron mass
   FourVector momentum_e1(0,0,0,0);
   FourVector momentum_e2(0,0,0,0);
 
