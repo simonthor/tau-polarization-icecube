@@ -10,8 +10,8 @@
 /physics_lists/nu/NeutrinoActivation true
 # /physics_lists/em/NuEleCcBias 5.0e34
 # /physics_lists/em/NuEleNcBias 5.0e34
-# /physics_lists/em/NuETotXscActivation true
-/physics_lists/nu/NuNucleusBias 1e34
+/physics_lists/nu/NuETotXscActivation true
+/physics_lists/nu/NuNucleusBias 1e14
 /physics_lists/nu/NuDetectorName DetectorLog
 #
 # Change the default number of threads (in multi-threaded mode)
