@@ -31,6 +31,7 @@
 #define B1DetectorConstruction_h 1
 
 #include "G4VUserDetectorConstruction.hh"
+#include "SensitiveDetector.hh"
 #include "globals.hh"
 
 class G4VPhysicalVolume;
@@ -48,11 +49,10 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     ~DetectorConstruction() override = default;
 
     G4VPhysicalVolume* Construct() override;
-
-    G4LogicalVolume* GetScoringVolume() const { return fScoringVolume; }
-
-  protected:
-    G4LogicalVolume* fScoringVolume = nullptr;
+  
+  private:
+    G4LogicalVolume* logicDetector;
+    virtual void ConstructSDandField() override;
 };
 
 }

@@ -54,7 +54,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
   // Detector parameters
   //
-  G4double env_sizeXY = 100.*m, env_sizeZ = 100.*m;
+  G4double env_sizeXY = 1000.*m, env_sizeZ = 1000.*m;
   G4Material* env_mat = nist->FindOrBuildMaterial("G4_WATER");
 
   // Option to switch on/off checking of volumes overlaps
@@ -110,7 +110,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   // G4RegionStore::GetInstance()->Register(neutrinoInteractionRegion);
   // Set water as scoring volume
   //
-  fScoringVolume = logicEnv;
+  logicDetector = logicEnv;
 
   //
   //always return the physical World
@@ -119,5 +119,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+void DetectorConstruction::ConstructSDandField() {
+  SensitiveDetector* detectorSD = new SensitiveDetector("SensitiveDetector");
+  logicDetector->SetSensitiveDetector(detectorSD);
+}
 
 }
