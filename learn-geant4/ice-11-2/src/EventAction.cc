@@ -24,32 +24,53 @@
 // ********************************************************************
 //
 //
-/// \file B1/src/ActionInitialization.cc
-/// \brief Implementation of the B1::ActionInitialization class
+/// \file B1/src/EventAction.cc
+/// \brief Implementation of the B1::EventAction class
 
-#include "ActionInitialization.hh"
-#include "PrimaryGeneratorAction.hh"
 #include "EventAction.hh"
+
+#include "G4Event.hh"
+#include "G4RunManager.hh"
+#include "G4SystemOfUnits.hh"
 
 namespace B1
 {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void ActionInitialization::BuildForMaster() const
+EventAction::EventAction()
+  : G4UserEventAction()
+{}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+void EventAction::BeginOfEventAction(const G4Event*)
 {
-  // auto runAction = new RunAction;
-  // SetUserAction(runAction);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void ActionInitialization::Build() const
+void EventAction::EndOfEventAction(const G4Event* event)
 {
-  SetUserAction(new PrimaryGeneratorAction);
+  // Iterate over all particles that are created from the tau neutrino and identify the tau lepton
+  // Iterate over all particles that are created from the tau lepton and store their 4-momenta
+  G4PrimaryVertex* primaryVertex = event->GetPrimaryVertex(0);
+  G4int numPrimaryParticles = primaryVertex->GetNumberOfParticle();
+  
+  for (G4int j = 0; j < numPrimaryParticles; ++j) {
+      G4PrimaryParticle* primaryParticle = primaryVertex->GetPrimary(j);
+      const G4ParticleDefinition* particleDefinition = primaryParticle->GetParticleDefinition();
+      
+      // Print information only for secondary particles
+      // Get PDG ID and 4-momentum
+      G4int pdgID = particleDefinition->GetPDGEncoding();
+      G4ThreeVector momentum = primaryParticle->GetMomentum();
 
-  auto eventAction = new EventAction();
-  SetUserAction(eventAction);
+      // Print particle information
+      G4cout << "Secondary particle created:" << G4endl;
+      G4cout << "PDG ID: " << pdgID << G4endl;
+      G4cout << "4-momentum (GeV): (" << primaryParticle->GetTotalEnergy() << ", " << momentum.x()/GeV << ", " << momentum.y()/GeV << ", " << momentum.z()/GeV << ")" << G4endl;
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

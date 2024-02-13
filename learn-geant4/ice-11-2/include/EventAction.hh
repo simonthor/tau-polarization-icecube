@@ -24,34 +24,40 @@
 // ********************************************************************
 //
 //
-/// \file B1/src/ActionInitialization.cc
-/// \brief Implementation of the B1::ActionInitialization class
+/// \file B1/include/EventAction.hh
+/// \brief Definition of the B1::EventAction class
 
-#include "ActionInitialization.hh"
-#include "PrimaryGeneratorAction.hh"
-#include "EventAction.hh"
+#ifndef B1EventAction_h
+#define B1EventAction_h 1
+
+#include "G4UserEventAction.hh"
+#include "globals.hh"
+
+/// Event action class
+///
 
 namespace B1
 {
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+class RunAction;
 
-void ActionInitialization::BuildForMaster() const
+class EventAction : public G4UserEventAction
 {
-  // auto runAction = new RunAction;
-  // SetUserAction(runAction);
+  public:
+    EventAction();
+    ~EventAction() override = default;
+
+    void BeginOfEventAction(const G4Event* event) override;
+    void EndOfEventAction(const G4Event* event) override;
+
+  private:
+    RunAction* fRunAction = nullptr;
+};
+
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void ActionInitialization::Build() const
-{
-  SetUserAction(new PrimaryGeneratorAction);
+#endif
 
-  auto eventAction = new EventAction();
-  SetUserAction(eventAction);
-}
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-}
