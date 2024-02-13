@@ -18,9 +18,15 @@ class SensitiveDetector : public G4VSensitiveDetector
 public:
     SensitiveDetector(G4String);
     ~SensitiveDetector();
+    // Declare Initialize, which will be called at the beginning of each event
+    void Initialize(G4HCofThisEvent * HCE);
+    // Declare EndOfEvent, which will be called at the end of each event
+    void EndOfEvent(G4HCofThisEvent * HCE);
     
 private:
     virtual G4bool ProcessHits(G4Step *, G4TouchableHistory *);
+    // Create the file to write to
+    std::ofstream outputFile;
 };
 }
 #endif

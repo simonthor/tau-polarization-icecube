@@ -121,4 +121,4 @@
 # View all events overlayed and accumulated
 # /vis/enable
 # /vis/viewer/flush
-/run/beamOn 3
+/run/beamOn 1

@@ -41,6 +41,8 @@
 #include "G4SystemOfUnits.hh"
 #include "G4Region.hh"
 #include "G4RegionStore.hh"
+#include "G4SDManager.hh"
+
 
 namespace B1
 {
@@ -54,7 +56,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
   // Detector parameters
   //
-  G4double env_sizeXY = 1000.*m, env_sizeZ = 1000.*m;
+  G4double env_sizeXY = 100.*m, env_sizeZ = 100.*m;
   G4Material* env_mat = nist->FindOrBuildMaterial("G4_WATER");
 
   // Option to switch on/off checking of volumes overlaps
@@ -121,6 +123,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void DetectorConstruction::ConstructSDandField() {
   SensitiveDetector* detectorSD = new SensitiveDetector("SensitiveDetector");
+  G4SDManager::GetSDMpointer()->AddNewDetector(detectorSD);
   logicDetector->SetSensitiveDetector(detectorSD);
 }
 
