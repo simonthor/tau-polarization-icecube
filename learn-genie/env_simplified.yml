@@ -1,0 +1,27 @@
+name: g4
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - clhep=2.4.6.2
+  - cmake
+  - cxx-compiler
+  - python
+  - expat
+  - libexpat
+  - gsl
+  - lhapdf
+  - libxml2
+  - log4cpp
+  - fortran-compiler
+  - binutils
+  - xorg-libx11
+  - xorg-libxext
+  - xorg-libxft
+  - xorg-libxpm
+  - openssl
+  - libpng
+  - libjpeg-turbo
+  - afterimage
+  - tbb
+prefix: /home/simon/miniconda3/envs/g4
