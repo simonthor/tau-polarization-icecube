@@ -1,0 +1,23 @@
+conda env create -n g4 -f env_simplified.yml
+conda install tbb -c conda-forge
+git clone --branch latest-stable --depth=1 https://github.com/root-project/root.git root_src
+mkdir root_build root_install && cd root_build
+cd ../root_src/cmake/modules
+code FindPythia6.cmake
+cd ../../root_build
+ccmake ../root_src
+cmake --build . -- install -j8
+cd ../root_install
+ls
+source bin/thisroot.sh
+z genie
+cd Generator
+export GENIE="/home/simon/Code/icecube/learn-genie/Generator"
+export LHAPATH="$(lhapdf-config --datadir)"
+export PATH=$GENIE/bin:$PATH
+export LD_LIBRARY_PATH=/home/simon/Downloads/Program/pythia6/v6_428/lib:$GENIE/lib:$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
+mkdir genie-install
+./configure --enable-lhapdf6 --disable-lhapdf5 --prefix=$PWD/genie-install
+make clean
+make -j8
+make install
