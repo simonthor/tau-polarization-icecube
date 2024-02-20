@@ -1,5 +1,0 @@
-TAUOLALOCATION=      @with_tauola@
-HEPMCLOCATION=       @with_hepmc@
-HEPMC3LOCATION=      @with_hepmc3@
-PYTHIALOCATION=      @with_pythia8@
-MCTESTERLOCATION=    @with_mc_tester@
