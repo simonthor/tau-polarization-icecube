@@ -116,7 +116,7 @@ int main(void){
     //Print::content(evt); // Prints detailed event content
     
     TauolaHepMC3Event t_event(&evt);
-    Tauola::decayOne(htau);
+    t_event.decayTaus();
 
     cout << "AFTER:" << endl;
     Print::listing(evt);
