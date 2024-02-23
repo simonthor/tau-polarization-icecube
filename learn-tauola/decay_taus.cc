@@ -32,9 +32,9 @@ int main(int argc, char **argv){
   if (argc == 4) {
     if (std::string(argv[3]) == "OFF") {
       pol_on = false;
+      cout << "Polarization turned off" << endl;
     }
   }
-
   int events_parsed = 0;
 
   Tauola::initialize();
@@ -58,12 +58,14 @@ int main(int argc, char **argv){
     TauolaHepMC3Event t_event(&evt);
     if (pol_on) {
       t_event.decayTaus();
+    
     } else {
       // Iterate over all particles in the event, find the tau particle (abs(pdg_id) == 15) and decay it using decayOne
       for (auto p : evt.particles()) {
         if (abs(p->pdg_id()) == 15) {
           TauolaHepMC3Particle *htau = new TauolaHepMC3Particle(p);
           Tauola::decayOne(htau);
+          break;
         }
       }
     }
