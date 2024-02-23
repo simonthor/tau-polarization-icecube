@@ -24,17 +24,22 @@ using namespace HepMC3;
 int main(int argc, char **argv){
 
   if( argc<3 ) {
-      std::cout << "Usage: " << argv[0] << " <HepMC3_input_file> <output_file> [ON|OFF]" << std::endl;
+      std::cout << "Usage: " << argv[0] << " <HepMC3_input_file> <output_file> [polx poly polz]" << std::endl;
       exit(-1);
   }
 
-  bool pol_on = true;
-  if (argc == 4) {
-    if (std::string(argv[3]) == "OFF") {
-      pol_on = false;
-      cout << "Polarization turned off" << endl;
-    }
+  vector<double> pol_vec = {};
+
+  if (argc == 6) {
+    pol_vec.push_back(atof(argv[3]));
+    pol_vec.push_back(atof(argv[4]));
+    pol_vec.push_back(atof(argv[5]));
+    cout << "Manual polarization is used" << endl;
   }
+  else {
+    cout << "Polarization is inferred" << endl;
+  }
+
   int events_parsed = 0;
 
   Tauola::initialize();
@@ -56,7 +61,7 @@ int main(int argc, char **argv){
     //Print::content(evt); // Prints detailed event content
     
     TauolaHepMC3Event t_event(&evt);
-    if (pol_on) {
+    if (pol_vec.size() == 0) {
       t_event.decayTaus();
     
     } else {
@@ -64,7 +69,7 @@ int main(int argc, char **argv){
       for (auto p : evt.particles()) {
         if (abs(p->pdg_id()) == 15) {
           TauolaHepMC3Particle *htau = new TauolaHepMC3Particle(p);
-          Tauola::decayOne(htau);
+          Tauola::decayOne(htau, false, pol_vec[0], pol_vec[1], pol_vec[2]);
           break;
         }
       }
