@@ -88,10 +88,8 @@ int get_pol_genie()
       if (
         // If the particle is a tau
         ((p->Status() == kIStStableFinalState) && (p->Pdg() == kPdgTau))
-        // If the particle is the incoming tau neutrino
-        || ((p->Status() == kIStInitialState) && (p->Pdg() == kPdgNuTau))
-        // If the particle is the incoming oxygen
-        || ((p->Status() == kIStInitialState) && (p->Pdg() == 1000080160))
+        // If the particle is an incoming particle
+        || (p->Status() == kIStInitialState)
       ) {
         interesting_particles.push_back(p);
         if (p->Pdg() == kPdgTau) {
