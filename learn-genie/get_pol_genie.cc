@@ -30,8 +30,7 @@ int    gOptNEvt = -1;
 string gOptInpFilename = "gntp.0.ghep.root";
 
 //___________________________________________________________________
-int get_pol_genie()
-{
+int get_pol_genie() {
   
   //-- open the ROOT file and get the TTree & its header
   TTree *           tree = 0;
@@ -87,7 +86,7 @@ int get_pol_genie()
     {
       if (
         // If the particle is a tau
-        ((p->Status() == kIStStableFinalState) && (p->Pdg() == kPdgTau))
+        ((p->Status() == kIStStableFinalState) && (p->Pdg() == kPdgTau) && (p->PolzIsSet()))
         // If the particle is an incoming particle
         || (p->Status() == kIStInitialState)
       ) {
