@@ -26,9 +26,9 @@ using namespace genie;
 
 // void GetCommandLineArgs (int argc, char ** argv);
 
-int    gOptNEvt = -1;
-string gOptInpFilename = "gntp.0.ghep.root";
-
+int    n_events = -1;
+string input_filename = "../data/gntp.0.ghep.root";
+string output_filename = "../data/genie_tau_pol_data.csv";
 //___________________________________________________________________
 int get_pol_genie() {
   
@@ -36,7 +36,7 @@ int get_pol_genie() {
   TTree *           tree = 0;
   NtpMCTreeHeader * thdr = 0;
 
-  TFile file(gOptInpFilename.c_str(),"READ");
+  TFile file(input_filename.c_str(),"READ");
 
   tree = dynamic_cast <TTree *>           ( file.Get("gtree")  );
   thdr = dynamic_cast <NtpMCTreeHeader *> ( file.Get("header") );
@@ -46,13 +46,13 @@ int get_pol_genie() {
   NtpMCEventRecord * mcrec = 0;
   tree->SetBranchAddress("gmcrec", &mcrec);
 
-  int nev = (gOptNEvt > 0) ?
-        TMath::Min(gOptNEvt, (int)tree->GetEntries()) :
+  int nev = (n_events > 0) ?
+        TMath::Min(n_events, (int)tree->GetEntries()) :
         (int) tree->GetEntries();
 
   // Open a csv file where the interesting data will be stored
   std::ofstream csv_file;
-  csv_file.open("genie_tau_pol_data.csv");
+  csv_file.open(output_filename);
   
   csv_file << "event_num,pdg,E,px,py,pz,polx,poly,polz\n";
 
