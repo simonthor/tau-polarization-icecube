@@ -1,0 +1,259 @@
+cd Downloads/Program
+ls
+mkdir geant4-v11.2.0-build
+mkdir geant4-data
+cd geant4-v11.2.0-build
+conda create -n g4 clhep=2.4.6.2 python=3.11 cxx-compiler cmake -c conda-forge
+conda activate g4
+mkdir geant4-v11.2.0-install
+cd geant4-v11.2.0-build
+ccmake ../geant4-v11.2.0
+make install
+cd ../geant4-v11.2.0-install
+cd bin
+ls
+source geant4.sh
+cd ..
+z icecube
+ls
+cd ..
+ls
+cd B1
+ls
+cd ..
+B1-local
+mkdir B1-local
+cd B1-local
+cp ~/Downloads/Program/geant4-v11.2.0-install/share/Geant4/examples/basic/B1/* ./
+cp -r ~/Downloads/Program/geant4-v11.2.0-install/share/Geant4/examples/basic/B1/* ./
+ls
+cmake -DGeant4_DIR="~/Downloads/Program/geant4-v11.2.0-install/lib/Geant4-11.2.0/" ../
+ls
+which cmake
+mkdir build
+cd build
+cmake -DGeant4_DIR="~/Downloads/Program/geant4-v11.2.0-install/lib/Geant4-11.2.0/" ../
+make -j8
+./exampleB1
+ls
+./exampleB1
+ls
+make -j8
+./exampleB1 init_vis.mac
+ls
+java
+sudo apt install default-jdk
+sudo apt install default-jre
+java -version
+java -jar
+java -version
+z Program
+ls
+java -jar HepRApp.jar
+java -verion
+java -version
+sudo apt upgrade
+sudo apt install x11-xserver-utils
+java -jar HepRApp.jar
+wget http://www.slac.stanford.edu/\~perl/HepRApp/HepRApp.jar
+java -jar HepRApp.jar
+sudo apt remove default-jre default-jdk
+sudo apt autoremove
+sudo apt install openjdk-8-jdk
+java -version
+which java
+sudo update-alternatives --config java 
+java -version
+java -jar HepRApp.jar
+sudo apt remove openjdk-8-jdk
+sudo apt autoremoe
+sudo apt autoremove
+java -version
+dpkg-query -W -f='${binary:Package}\n' | grep -E -e '^(ia32-)?(sun|oracle)-java' -e '^openjdk-' -e '^icedtea' -e '^(default|gcj)-j(re|dk)' -e '^gcj-(.*)-j(re|dk)' -e '^java-common' | xargs sudo apt-get -y remove
+sudo apt autoremove
+sudo rm -rf /usr/lib/jvm/*
+java -version
+sudo apt install openjdk-7-jdk
+./exampleB1 init_vis.mac
+ls
+make -j8
+./exampleB1 init_vis.mac
+ls
+./exampleB1 init_vis.mac
+make -j8 && ./exampleB1 init_vis.mac
+ls
+cd ..
+cd Program/view3dscene
+ls
+./view3dscene --help
+ls
+pwd
+ls g4_00.wrl
+./view3dscene /home/simon/Code/icecube/learn-geant4/B1-local/build/g4_00.wrl
+java -version
+sudo apt install openjdk-8-jdk
+conda list
+conda install geant4 -c conda-forge
+wish
+export DAWN_PS_PREVIEWER="gs"
+echo $DAWN_PS_PREVIEWER=
+echo $DAWN_PS_PREVIEWER
+cd ..
+ls
+rm -r dawn_3_91a
+tar xzf dawn_3_91a.tgz
+ls
+cd dawn_3_91a
+conda activate g4
+make clean
+make guiclean
+make
+wish
+gs --help
+./configure
+ls
+make clean
+make guiclean
+./configure
+ls
+csh --help
+cd ..
+ld
+cd jre1.8.0_401
+ls
+ls bin
+bin/java -version
+bin/java -jar ../HepRApp.jar
+cd
+cd Downloads/Program
+cd jre1.7.0_80
+ls
+bin/java -jar ../HepRApp.jar
+ls
+less README
+cd bin
+ls
+./java -version
+cd ..
+ls HepRApp.jar
+pwd
+cd jre1.7.0_80/bin
+./java -jar /home/simon/Downloads/Program
+./java -jar /home/simon/Downloads/Program/HepRApp.jar
+uname -m
+z Program
+ls
+cd jre1.7.0_80
+ls
+cd bin
+ls
+./java -jar ../../HepRApp.jar
+ls
+z icecube
+ls
+cd ..
+ls
+cd ..
+ls
+cd B1-local
+ls
+cd build
+ls
+cd ..
+ls
+conda activate g4
+make -j4 && ./exampleB1
+cd build
+make -j4 && ./exampleB1
+cd ..
+ls
+cd ice-11-2
+ls
+make -j4 && ./exampleB1
+cd build
+make -j4 && ./exampleB1
+cd ..
+ls
+cd ..
+ls
+cd ice-11-2
+ls
+rm -r build
+mkdir build
+cd build
+cmake -DGeant4_DIR="~/Downloads/Program/geant4-v11.2.0-install/lib/Geant4-11.2.0/" ../
+ls
+cd ..
+ls
+cd build
+cmake -DGeant4_DIR="~/Downloads/Program/geant4-v11.2.0-install/lib/Geant4-11.2.0/" ../
+ls ~/Downloads/Program/geant4-v11.2.0-install/lib/Geant4-11.2.0/
+ls ~/Downloads/Program/geant4-v11.2.0-install/lib/cmake/Geant4
+cmake -DGeant4_DIR="~/Downloads/Program/geant4-v11.2.0-install/lib/cmake/Geant4"
+cmake -DGeant4_DIR="~/Downloads/Program/geant4-v11.2.0-install/lib/cmake/Geant4" ../
+ls
+make -j4
+./exampleB1
+z icecube
+ls
+cd ..
+ls
+cd ..
+cd ice
+conda activate icecube
+cd build/
+cmake -DGeant4_DIR="$CONDA_PREFIX/lib/Geant4-11.1.3/" ../
+make -j4
+./exampleB1
+pwd
+./exampleB1
+make -j4
+./exampleB1
+make -j4
+./exampleB1
+make -j4
+./exampleB1
+./exampleB1 init_vis.mac
+make -j4
+./exampleB1 init_vis.mac
+./java -jar ../../HepRApp.jar
+./exampleB1 init_vis.mac
+make -j4
+./exampleB1 init_vis.mac
+./java -jar ../../HepRApp.jar
+ls
+./exampleB1 init_vis.mac
+./java -jar ../../HepRApp.jar
+make -j4
+./exampleB1 init_vis.mac
+make -j4
+./exampleB1 init_vis.mac
+make -j4
+./exampleB1 init_vis.mac
+make -j4
+./exampleB1 init_vis.mac
+make -j4
+./exampleB1 init_vis.mac
+make -j4
+./exampleB1 init_vis.mac
+make -j4
+./exampleB1 init_vis.mac
+cd ../../ice
+pwd
+make -j4
+./exampleB1 init_vis.mac
+ls
+./exampleB1 init_vis.mac
+make -j4
+./exampleB1 init_vis.mac
+cd ..
+ls
+cd build
+cmake -DGeant4_DIR="$CONDA_PREFIX/lib/Geant4-11.1.3/" ../
+make -j4
+./exampleB1
+make -j4
+./exampleB1
+make -j4
+./exampleB1
+conda list
