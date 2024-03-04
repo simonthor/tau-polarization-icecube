@@ -21,33 +21,66 @@ using namespace std;
 using namespace Tauolapp;
 using namespace HepMC3;
 
-int main(int argc, char **argv) {
 
-  if( argc<4 ) {
-      std::cout << "Usage: " << argv[0] << " <HepMC3_input_file> <output_file> <polfile>" << std::endl;
-      exit(-1);
-  }
-
-  ifstream polfile(argv[3]);
-  // Read the first line of the file, which contains the column names
-  string line;
-  getline(polfile, line);
-  // Split the line between , and determine which indices correspond to the polarization vector
-  vector<int> pol_vec_i;
+vector<double> get_pol_vec(string& line, vector<int>& pol_vec_i, GenEvent& evt) {
+  // Read a line in the csv file and get the polarization vector
   stringstream ss(line);
   string token;
+  vector<double> pol_vec;
   int index_counter = 0;
+
   while (getline(ss, token, ',')) {
-    if (token == "polx" || token == "poly" || token == "polz") {
-      pol_vec_i.push_back(index_counter);
+    // cout << "Token: " << token << endl;
+    // Check that the event number in the csv file matches the event number in the HepMC3 GenEvent
+    if (index_counter == 0) {
+      if (stoi(token) != evt.event_number()) {
+        cout << "Event number in csv file does not match event number in HepMC3 GenEvent\n"
+        << "Instead of " << evt.event_number() << " found " << token << " in csv file\n";
+        exit(-1);
+      }
+    }
+
+    if (index_counter == pol_vec_i[0] || index_counter == pol_vec_i[1] || index_counter == pol_vec_i[2]) {
+      pol_vec.push_back(stod(token));
     }
     ++index_counter;
+  }
+
+  return pol_vec;
+}
+
+int main(int argc, char **argv) {
+  ifstream polfile;
+  bool polfile_given = false;
+  vector<double> pol_vec;
+  vector<int> pol_vec_i;
+  string line;
+
+  if( argc<4 ) {
+      std::cout << "Usage: " << argv[0] << " <HepMC3_input_file> <output_file> [polx poly polz] [polfile]" << std::endl;
+      exit(-1);
+  }
+  else if (argc == 7) {
+    polfile_given = true;
+    polfile = ifstream(argv[6]);
+    // If the file cannot be opened, print an error message and exit
+    if (!polfile.is_open()) {
+      cout << "Could not open file " << argv[3] << endl;
+      exit(-1);
+    }
+    pol_vec_i = {stoi(argv[3]), stoi(argv[4]), stoi(argv[5])};
+    // Skip first line
+    getline(polfile, line);
+    // cout << "Polarization vector indices: " << pol_vec_i[0] << " " << pol_vec_i[1] << " " << pol_vec_i[2] << endl;
+  }
+  else {
+    pol_vec = {stod(argv[3]), stod(argv[4]), stod(argv[5])};
   }
 
   int events_parsed = 0;
 
   Tauola::initialize();
-
+  
   ReaderAscii input_file (argv[1]);
   WriterAscii output_file (argv[2]);
   // for (int iEvent = 0; iEvent < NumberOfEvents; ++iEvent) {
@@ -70,29 +103,13 @@ int main(int argc, char **argv) {
       if (abs(p->pdg_id()) == 15) {
         TauolaHepMC3Particle *htau = new TauolaHepMC3Particle(p);
         
-        // Read a line in the csv file and get the polarization vector
-        getline(polfile, line);
-        stringstream ss(line);
-        string token;
-        vector<double> pol_vec;
-        int index_counter = 0;
-
-        while (getline(ss, token, ',')) {
-          // Check that the event number in the csv file matches the event number in the HepMC3 GenEvent
-          if (index_counter == 0) {
-            if (stoi(token) != evt.event_number()) {
-              cout << "Event number in csv file does not match event number in HepMC3 GenEvent\n"
-              << "Instead of " << evt.event_number() << " found " << token << " in csv file\n";
-              exit(-1);
-            }
-          }
-
-          if (index_counter == pol_vec_i[0] || index_counter == pol_vec_i[1] || index_counter == pol_vec_i[2]) {
-            pol_vec.push_back(stod(token));
-          }
-          ++index_counter;
+        if (polfile_given) {
+          getline(polfile, line);
+          pol_vec = get_pol_vec(line, pol_vec_i, evt);
         }
-        
+        // Debugging
+        // cout << pol_vec[0] << " " << pol_vec[1] << " " << pol_vec[2] << endl;
+
         Tauola::decayOne(htau, false, pol_vec[0], pol_vec[1], pol_vec[2]);
         break;
       }
