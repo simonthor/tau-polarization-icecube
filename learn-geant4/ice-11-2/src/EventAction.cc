@@ -52,27 +52,45 @@ void EventAction::BeginOfEventAction(const G4Event*)
 
 void EventAction::EndOfEventAction(const G4Event* event)
 {
-  // Iterate over all particles that are created from the tau neutrino and identify the tau lepton
-  // Iterate over all particles that are created from the tau lepton and store their 4-momenta
-  G4PrimaryVertex* primaryVertex = event->GetPrimaryVertex(0);
-  G4int numPrimaryParticles = primaryVertex->GetNumberOfParticle();
-  
-  for (G4int j = 0; j < numPrimaryParticles; ++j) {
-      G4PrimaryParticle* primaryParticle = primaryVertex->GetPrimary(j);
-      const G4ParticleDefinition* particleDefinition = primaryParticle->GetParticleDefinition();
-      
-      // Print information only for secondary particles
-      // Get PDG ID and 4-momentum
-      G4int pdgID = particleDefinition->GetPDGEncoding();
-      G4ThreeVector momentum = primaryParticle->GetMomentum();
+  // Iterate over all particles in the event, not just the primary vertex. 
+  // Find the particles that have a mother particle of a tau lepton, but are not a tau lepton themselves
+  // and print out their information (PDG ID, E, px, py, pz)
+  // G4TrajectoryContainer* trajectoryContainer = event->GetStepCon();
+  // if (!trajectoryContainer) {
+  //     G4cerr << "Error: No trajectory container found for the event!" << G4endl;
+  //     return;
+  // }
 
-      // Print particle information
-      G4cout << "Secondary particle created:" << G4endl;
-      G4cout << "PDG ID: " << pdgID << G4endl;
-      G4cout << "4-momentum (GeV): (" << primaryParticle->GetTotalEnergy() << ", " << momentum.x()/GeV << ", " << momentum.y()/GeV << ", " << momentum.z()/GeV << ")" << G4endl;
-  }
-}
+  // for (size_t i = 0; i < trajectoryContainer->size(); ++i) {
+  //   G4VTrajectory* trajectory = (*trajectoryContainer)[i];
+  //   if (trajectory) {
+  //       const G4Track* track = trajectory->GetPrimaryTrack();
+  //       const G4ParticleDefinition* particleDefinition = track->GetParticleDefinition();
+
+  //       // Check if the parent particle is a tau lepton
+  //       if (track->GetParentID() == 1) { // Assuming tau lepton's parent ID is 1
+  //           const G4ParticleDefinition* parentDefinition = track->GetParent()->GetDefinition();
+  //           if (parentDefinition->GetPDGEncoding() == 15) { // PDG ID for tau lepton
+  //               // Exclude particles that are tau leptons themselves
+  //               if (particleDefinition->GetPDGEncoding() != 15) {
+  //                   // Print information about daughter particles
+  //                   G4int pdgID = particleDefinition->GetPDGEncoding();
+  //                   G4double energy = track->GetKineticEnergy();
+  //                   G4double time = track->GetGlobalTime();
+  //                   G4cout << "Particle PDG ID: " << pdgID << G4endl;
+  //                   G4cout << "Particle Kinetic Energy: " << energy << " MeV" << G4endl;
+  //                   G4cout << "Particle Global Time: " << time << " ns" << G4endl;
+  //                   G4cout << G4endl;
+  //               }
+  //           }
+  //       }
+  //   } else {
+  //       G4cerr << "Error: No trajectory found at index " << i << G4endl;
+  //   }
+  // }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+}
 
 }

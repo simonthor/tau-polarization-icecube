@@ -7,12 +7,12 @@
 /run/verbose 2
 #
 # Activate neutrino interactions
-/physics_lists/nu/NeutrinoActivation true
-/physics_lists/nu/NuETotXscActivation true
+# /physics_lists/nu/NeutrinoActivation true
+# /physics_lists/nu/NuETotXscActivation true
 # /physics_lists/nu/NuEleCcBias 1.0e6
 # /physics_lists/nu/NuEleNcBias 1.0e6
-/physics_lists/nu/NuNucleusBias 1e13
-/physics_lists/nu/NuDetectorName DetectorLog
+# /physics_lists/nu/NuNucleusBias 1e13
+# /physics_lists/nu/NuDetectorName DetectorLog
 #
 # Change the default number of threads (in multi-threaded mode)
 #/run/numberOfThreads 4

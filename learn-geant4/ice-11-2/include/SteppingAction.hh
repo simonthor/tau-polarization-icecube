@@ -24,37 +24,40 @@
 // ********************************************************************
 //
 //
-/// \file B1/src/ActionInitialization.cc
-/// \brief Implementation of the B1::ActionInitialization class
+/// \file B1/include/SteppingAction.hh
+/// \brief Definition of the B1::SteppingAction class
 
-#include "ActionInitialization.hh"
-#include "PrimaryGeneratorAction.hh"
-#include "EventAction.hh"
-#include "SteppingAction.hh"
+#ifndef B1SteppingAction_h
+#define B1SteppingAction_h 1
+
+#include "G4UserSteppingAction.hh"
+#include "globals.hh"
+
+class G4LogicalVolume;
+
+/// Stepping action class
+///
 
 namespace B1
 {
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+class EventAction;
 
-void ActionInitialization::BuildForMaster() const
+class SteppingAction : public G4UserSteppingAction
 {
-  // auto runAction = new RunAction;
-  // SetUserAction(runAction);
+  public:
+    SteppingAction(EventAction* eventAction);
+    ~SteppingAction() override = default;
+
+    // method from the base class
+    void UserSteppingAction(const G4Step*) override;
+
+  private:
+    EventAction* fEventAction = nullptr;
+};
+
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void ActionInitialization::Build() const
-{
-  SetUserAction(new PrimaryGeneratorAction);
-
-  auto eventAction = new EventAction();
-  SetUserAction(eventAction);
-  auto steppingAction = new SteppingAction(eventAction);
-  SetUserAction(steppingAction);
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-}
+#endif

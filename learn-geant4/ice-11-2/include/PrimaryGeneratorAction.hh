@@ -60,7 +60,8 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 
   private:
     G4ParticleGun* fParticleGun = nullptr; // pointer a to G4 gun class
-    G4Box* fDetectorBox = nullptr;
+    // The path to the file with all the tau leptons
+    std::string ffilename = "/home/simon/Code/icecube/data/genie_pol_e5.csv";
 };
 
 }

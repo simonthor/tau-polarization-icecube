@@ -121,10 +121,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-void DetectorConstruction::ConstructSDandField() {
-  SensitiveDetector* detectorSD = new SensitiveDetector("SensitiveDetector");
-  G4SDManager::GetSDMpointer()->AddNewDetector(detectorSD);
-  logicDetector->SetSensitiveDetector(detectorSD);
-}
+// void DetectorConstruction::ConstructSDandField() {
+//   SensitiveDetector* detectorSD = new SensitiveDetector("SensitiveDetector");
+//   G4SDManager::GetSDMpointer()->AddNewDetector(detectorSD);
+//   logicDetector->SetSensitiveDetector(detectorSD);
+// }
 
 }

@@ -24,37 +24,50 @@
 // ********************************************************************
 //
 //
-/// \file B1/src/ActionInitialization.cc
-/// \brief Implementation of the B1::ActionInitialization class
+/// \file B1/src/SteppingAction.cc
+/// \brief Implementation of the B1::SteppingAction class
 
-#include "ActionInitialization.hh"
-#include "PrimaryGeneratorAction.hh"
-#include "EventAction.hh"
 #include "SteppingAction.hh"
+#include "EventAction.hh"
+
+#include "G4Step.hh"
+#include "G4Event.hh"
+#include "G4RunManager.hh"
+#include "G4LogicalVolume.hh"
 
 namespace B1
 {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void ActionInitialization::BuildForMaster() const
-{
-  // auto runAction = new RunAction;
-  // SetUserAction(runAction);
-}
+SteppingAction::SteppingAction(EventAction* eventAction)
+: fEventAction(eventAction)
+{}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void ActionInitialization::Build() const
+void SteppingAction::UserSteppingAction(const G4Step* step)
 {
-  SetUserAction(new PrimaryGeneratorAction);
+  // If the parent of the track is a tau lepton and the track is not a tau lepton, print out the track's information
+  if (step->GetTrack()->GetParentID() == 1 
+      && step->GetTrack()->GetCurrentStepNumber() == 1 // There are multiple steps for each track/particle, so we only pick the first step
+      && step->GetTrack()->GetDefinition()->GetPDGEncoding() != 15) {
+    G4cout << "Track ID: " << step->GetTrack()->GetTrackID() << G4endl;
+    // G4cout << "Track step number: " << step->GetTrack()->GetCurrentStepNumber() << G4endl;
+    G4cout << "PDG ID: " << step->GetTrack()->GetDefinition()->GetPDGEncoding() << G4endl;
+    G4cout << "Energy: " << step->GetTrack()->GetKineticEnergy() << G4endl;
+    G4cout << "Momentum: " << step->GetTrack()->GetMomentum() << G4endl;
+  }
+  // if ( theStep->GetTrack()->GetParentID() == 0  &&
+  //     theStep->GetTrack()->GetCurrentStepNumber() == 1 ) {
+  // }
+  // if ( theStep->GetTrack()->GetParentID() == 0  &&
+  //       theStep->GetPostStepPoint()->GetProcessDefinedStep() != nullptr  &&
+  //       theStep->GetPostStepPoint()->GetProcessDefinedStep()->GetProcessName().find( "Decay" )
+  //       != std::string::npos ) {
+  // }
 
-  auto eventAction = new EventAction();
-  SetUserAction(eventAction);
-  auto steppingAction = new SteppingAction(eventAction);
-  SetUserAction(steppingAction);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 }
