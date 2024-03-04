@@ -1,0 +1,11 @@
+# Macro file for simulating all tau decays
+#
+/event/verbose 0
+/run/verbose 0
+/tracking/verbose 0
+/process/verbose 0
+/process/em/verbose 0
+# Change the default number of threads (in multi-threaded mode)
+#/run/numberOfThreads 4
+/run/initialize
+/run/beamOn 1000
