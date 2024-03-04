@@ -7,7 +7,7 @@
 // Tauola headers
 #include "Tauola/Tauola.h"
 #include "Tauola/TauolaHepMC3Event.h"
-// #include "Tauola/TauolaHepMC3Particle.h"
+#include "Tauola/Log.h"
 
 // HepMC3 headers
 #include "HepMC3/GenEvent.h"
@@ -55,6 +55,8 @@ int main(int argc, char **argv) {
   vector<double> pol_vec;
   vector<int> pol_vec_i;
   string line;
+  // No limit for the number of warnings
+  Log::SetWarningLimit(0);
 
   if( argc<4 ) {
       std::cout << "Usage: " << argv[0] << " <HepMC3_input_file> <output_file> [polx poly polz] [polfile]" << std::endl;
@@ -106,10 +108,17 @@ int main(int argc, char **argv) {
         if (polfile_given) {
           getline(polfile, line);
           pol_vec = get_pol_vec(line, pol_vec_i, evt);
+          // If the polarization vector has a norm > 1, normalize it to have a norm of 1. 
+          // This is caused by floating point errors
+          double norm = pol_vec[0]*pol_vec[0] + pol_vec[1]*pol_vec[1] + pol_vec[2]*pol_vec[2];
+          while (norm > 1) {
+            pol_vec[0] /= norm;
+            pol_vec[1] /= norm;
+            pol_vec[2] /= norm;
+            norm = pol_vec[0]*pol_vec[0] + pol_vec[1]*pol_vec[1] + pol_vec[2]*pol_vec[2];
+          }
         }
-        // Debugging
-        // cout << pol_vec[0] << " " << pol_vec[1] << " " << pol_vec[2] << endl;
-
+        // Decay the particle with the specified polarization
         Tauola::decayOne(htau, false, pol_vec[0], pol_vec[1], pol_vec[2]);
         break;
       }
