@@ -38,6 +38,8 @@
 #include "G4ParticleDefinition.hh"
 #include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
+#include <fstream>
+#include <sstream>
 
 namespace B1
 {
@@ -95,35 +97,40 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   // G4double y0 = (G4UniformRand()-0.5) * envSizeXY/2;
   // G4double z0 = -0.55 * envSizeZ;
   // Open the file to read the tau leptons from
-  // std::ifstream file;
-  // file.open(ffilename);
-  // // Read the line that corresponds to the event number (+1 because the first line is the header)
-  // std::string line;
-  // for (int i = 0; i < anEvent->GetEventID() + 1; ++i) {
-  //   std::getline(file, line);
-  // }
-  // // Read the PDG ID and 4-momentum from the line, by splitting the line at each comma
-  // // The columns are (starting at column 0): column 1: PDG ID, column 2: E, column 3: px, column 4: py, column 5: pz
-  // std::string pdg_id_str;
-  // std::string E_str;
-  // std::string px_str;
-  // std::string py_str;
-  // std::string pz_str;
-  // std::stringstream ss(line);
-  // std::getline(ss, pdg_id_str, ',');
-  // std::getline(ss, E_str, ',');
-  // std::getline(ss, px_str, ',');
-  // std::getline(ss, py_str, ',');
-  // std::getline(ss, pz_str, ',');
-  // // Convert the strings to the correct data types
-  // int pdg_id = std::stoi(pdg_id_str);
-  // double E = std::stod(E_str) * GeV;
-  // double px = std::stod(px_str) * GeV;
-  // double py = std::stod(py_str) * GeV;
-  // double pz = std::stod(pz_str) * GeV;
-  // // Close the file
-  // file.close();
-  // G4cout << "PDG ID: " << pdg_id << " E: " << E << " px: " << px << " py: " << py << " pz: " << pz << G4endl;
+  // G4cout << "Event ID: " << anEvent->GetEventID() << G4endl;
+  std::ifstream file;
+  file.open(ffilename);
+
+  // Read the line that corresponds to the event number (+1 because the first line is the header)
+  std::string line;
+  for (int i = 0; i < anEvent->GetEventID() + 2; ++i) {
+    std::getline(file, line);
+  }
+
+  // G4cout << "Reading file" << line << G4endl;
+  // Read the PDG ID and 4-momentum from the line, by splitting the line at each comma
+  // The columns are (starting at column 0): column 1: PDG ID, column 2: E, column 3: px, column 4: py, column 5: pz
+  std::string pdg_id_str;
+  std::string E_str;
+  std::string px_str;
+  std::string py_str;
+  std::string pz_str;
+  std::stringstream ss(line);
+  std::getline(ss, pdg_id_str, ','); // Skip the first number, which is the event number
+  std::getline(ss, pdg_id_str, ',');
+  std::getline(ss, E_str, ',');
+  std::getline(ss, px_str, ',');
+  std::getline(ss, py_str, ',');
+  std::getline(ss, pz_str, ',');
+  // Convert the strings to the correct data types
+  int pdg_id = std::stoi(pdg_id_str);
+  double E = std::stod(E_str) * GeV;
+  double px = std::stod(px_str) * GeV;
+  double py = std::stod(py_str) * GeV;
+  double pz = std::stod(pz_str) * GeV;
+  // Close the file
+  file.close();
+  // G4cout << "PDG ID: " << pdg_id << " E: " << E << " px: " << px << " py: " << py << " pz: " << pz << " MeV" << G4endl;
 
   // Set the particle gun position to (0,0,0)
   fParticleGun->SetParticlePosition(G4ThreeVector(0.,0.,0.));
@@ -134,8 +141,8 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   fParticleGun->SetParticleDefinition(particle);
   
   // Set momentum. The energy is then inferred from the momentum and mass
-  fParticleGun->SetParticleMomentum(G4ThreeVector(0,0,1*GeV));
-  // fParticleGun->SetParticleEnergy(10.*GeV);
+  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(px, py, pz));
+  fParticleGun->SetParticleEnergy(E);
 
   fParticleGun->GeneratePrimaryVertex(anEvent);
 }
@@ -143,5 +150,4 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 }
-
 

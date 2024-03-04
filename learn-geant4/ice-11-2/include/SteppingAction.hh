@@ -32,6 +32,7 @@
 
 #include "G4UserSteppingAction.hh"
 #include "globals.hh"
+#include <mutex>
 
 class G4LogicalVolume;
 
@@ -54,6 +55,7 @@ class SteppingAction : public G4UserSteppingAction
 
   private:
     EventAction* fEventAction = nullptr;
+    std::mutex fileMutex; // Mutex for file access
 };
 
 }

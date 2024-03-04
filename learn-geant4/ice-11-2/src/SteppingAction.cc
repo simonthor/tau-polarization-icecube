@@ -34,6 +34,9 @@
 #include "G4Event.hh"
 #include "G4RunManager.hh"
 #include "G4LogicalVolume.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4RunManager.hh"
+#include <fstream>
 
 namespace B1
 {
@@ -48,24 +51,38 @@ SteppingAction::SteppingAction(EventAction* eventAction)
 
 void SteppingAction::UserSteppingAction(const G4Step* step)
 {
+  int pdgID = step->GetTrack()->GetDefinition()->GetPDGEncoding();
   // If the parent of the track is a tau lepton and the track is not a tau lepton, print out the track's information
   if (step->GetTrack()->GetParentID() == 1 
       && step->GetTrack()->GetCurrentStepNumber() == 1 // There are multiple steps for each track/particle, so we only pick the first step
-      && step->GetTrack()->GetDefinition()->GetPDGEncoding() != 15) {
-    G4cout << "Track ID: " << step->GetTrack()->GetTrackID() << G4endl;
-    // G4cout << "Track step number: " << step->GetTrack()->GetCurrentStepNumber() << G4endl;
-    G4cout << "PDG ID: " << step->GetTrack()->GetDefinition()->GetPDGEncoding() << G4endl;
-    G4cout << "Energy: " << step->GetTrack()->GetKineticEnergy() << G4endl;
-    G4cout << "Momentum: " << step->GetTrack()->GetMomentum() << G4endl;
+      && pdgID != 15) {
+    
+    auto momentum = step->GetTrack()->GetMomentum();
+    // Open the file in append mode
+    std::ofstream outputFile("geant4_decays.csv", std::ios_base::app);
+    if (outputFile.is_open()) {
+        // Write event number to file
+        outputFile << G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID() << ","
+          // Write PDG ID
+          << pdgID << ","
+          // Write 4-momentum
+          << step->GetTrack()->GetTotalEnergy() / GeV << "," << momentum.x()/GeV << "," << momentum.y()/GeV << "," << momentum.z()/GeV << "\n";
+        
+        // Close the file
+        outputFile.close();
+    } else {
+        // Handle file open error
+        G4cerr << "Error: Unable to open file for writing!" << G4endl;
+    }
+
+    // Unlock the mutex after writing to the file
+    fileMutex.unlock();
+    // G4cout << "Track ID: " << step->GetTrack()->GetTrackID() << G4endl;
+    // G4cout << "PDG ID: " << step->GetTrack()->GetDefinition()->GetPDGEncoding() << G4endl;
+    // G4cout << "Energy: " << step->GetTrack()->GetTotalEnergy() / GeV << G4endl;
+    // G4cout << "Momentum: " << step->GetTrack()->GetMomentum() / GeV << G4endl;
   }
-  // if ( theStep->GetTrack()->GetParentID() == 0  &&
-  //     theStep->GetTrack()->GetCurrentStepNumber() == 1 ) {
-  // }
-  // if ( theStep->GetTrack()->GetParentID() == 0  &&
-  //       theStep->GetPostStepPoint()->GetProcessDefinedStep() != nullptr  &&
-  //       theStep->GetPostStepPoint()->GetProcessDefinedStep()->GetProcessName().find( "Decay" )
-  //       != std::string::npos ) {
-  // }
+  
 
 }
 
