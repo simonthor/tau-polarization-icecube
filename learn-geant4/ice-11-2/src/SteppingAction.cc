@@ -58,8 +58,9 @@ void SteppingAction::UserSteppingAction(const G4Step* step)
       && pdgID != 15) {
     
     auto momentum = step->GetTrack()->GetMomentum();
+    // TODO create a RunAction that clears the file and adds a header
     // Open the file in append mode
-    std::ofstream outputFile("geant4_decays.csv", std::ios_base::app);
+    std::ofstream outputFile(out_filename, std::ios_base::app);
     if (outputFile.is_open()) {
         // Write event number to file
         outputFile << G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID() << ","

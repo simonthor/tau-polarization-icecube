@@ -142,7 +142,9 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   
   // Set momentum. The energy is then inferred from the momentum and mass
   fParticleGun->SetParticleMomentumDirection(G4ThreeVector(px, py, pz));
-  fParticleGun->SetParticleEnergy(E);
+  // Note: SetParticleEnergy sets the kinetic energy, not the total energy.
+  // To set the total energy to what we want, we therefore subtract the mass of the particle
+  fParticleGun->SetParticleEnergy(E - particle->GetPDGMass());
 
   fParticleGun->GeneratePrimaryVertex(anEvent);
 }
