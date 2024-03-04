@@ -1,7 +1,7 @@
 # Macro file for simulating all tau decays
 #
 /event/verbose 0
-/run/verbose 0
+/run/verbose 1
 /tracking/verbose 0
 /process/verbose 0
 /process/em/verbose 0
