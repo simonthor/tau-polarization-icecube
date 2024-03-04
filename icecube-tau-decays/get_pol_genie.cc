@@ -27,8 +27,8 @@ using namespace genie;
 // void GetCommandLineArgs (int argc, char ** argv);
 
 int    n_events = -1;
-string input_filename = "../data/gntp.0.ghep.root";
-string output_filename = "../data/genie_tau_pol_data.csv";
+string input_filename = "../data/gntp.2.ghep.root";
+string output_filename = "../data/genie_tau_pol_data_e5.csv";
 //___________________________________________________________________
 int get_pol_genie() {
   
