@@ -26,9 +26,10 @@ using namespace genie;
 
 // void GetCommandLineArgs (int argc, char ** argv);
 
-int    n_events = 1000000;
+int start_ev = 0;
+int end_ev = 500000;
 string input_filename = "../data/gntp.2.ghep.root";
-string output_filename = "../data/genie_tau_pol_data_e5_2.csv";
+string output_filename = "../data/genie_tau_pol_data_e5_1.csv";
 
 //___________________________________________________________________
 int get_pol_genie() {
@@ -47,8 +48,8 @@ int get_pol_genie() {
   NtpMCEventRecord * mcrec = 0;
   tree->SetBranchAddress("gmcrec", &mcrec);
 
-  int nev = (n_events > 0) ?
-        TMath::Min(n_events, (int)tree->GetEntries()) :
+  int nev = (end_ev > 0) ?
+        TMath::Min(end_ev, (int)tree->GetEntries()) :
         (int) tree->GetEntries();
 
   // Open a csv file where the interesting data will be stored
@@ -62,7 +63,7 @@ int get_pol_genie() {
   //
   // Loop over all events
   //
-  for(int i = 500000; i < nev; i++) {
+  for(int i = start_ev; i < nev; i++) {
 
     // get next tree entry
     tree->GetEntry(i);
@@ -88,7 +89,11 @@ int get_pol_genie() {
     {
       if (
         // If the particle is a tau
-        ((p->Status() == kIStStableFinalState) && (p->Pdg() == kPdgTau) && (p->PolzIsSet()))
+        (
+          (p->Status() == kIStStableFinalState) && (p->Pdg() == kPdgTau)
+          // I now include particles where the polarization is not set as well but I am not sure if this is correct. I think it is though.
+          // && (p->PolzIsSet())
+        )
         // If the particle is an incoming particle
         || (p->Status() == kIStInitialState)
       ) {
