@@ -26,9 +26,10 @@ using namespace genie;
 
 // void GetCommandLineArgs (int argc, char ** argv);
 
-int    n_events = -1;
+int    n_events = 1000000;
 string input_filename = "../data/gntp.2.ghep.root";
-string output_filename = "../data/genie_tau_pol_data_e5.csv";
+string output_filename = "../data/genie_tau_pol_data_e5_2.csv";
+
 //___________________________________________________________________
 int get_pol_genie() {
   
@@ -55,11 +56,13 @@ int get_pol_genie() {
   csv_file.open(output_filename);
   
   csv_file << "event_num,pdg,E,px,py,pz,polx,poly,polz\n";
+  
+  csv_file.close();
 
   //
   // Loop over all events
   //
-  for(int i = 0; i < nev; i++) {
+  for(int i = 500000; i < nev; i++) {
 
     // get next tree entry
     tree->GetEntry(i);
@@ -77,7 +80,6 @@ int get_pol_genie() {
 
     // Number of taus in an event
     int n_taus = 0;
-
 
     //
     // Loop over all particles in this event
@@ -99,9 +101,16 @@ int get_pol_genie() {
     }// end loop over particles	
     
     // If there are no taus in the event, skip it
-    if (n_taus != 1) {
+    if (n_taus > 1) {
+      // LOG("myAnalysis", pNOTICE) << "WARNING: Too many taus in event: " << n_taus << " tau leptons instead of 1. Skipping";
       continue;
     }
+    if (n_taus < 1) {
+      continue;
+    }
+
+    std::ofstream csv_file;
+    csv_file.open(output_filename, std::ofstream::app); // Append mode
 
     for (auto p : interesting_particles) {
       TVector3 pol;
@@ -114,7 +123,12 @@ int get_pol_genie() {
 
     // clear current mc event record
     mcrec->Clear();
+    // Close csv file
+    csv_file.close();
 
+    // if (i % 100000 == 0) {
+    //   LOG("myAnalysis", pNOTICE) << "Processed " << i << " events";
+    // }
   }//end loop over events
 
   // Print total number of events
