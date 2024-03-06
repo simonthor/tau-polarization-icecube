@@ -53,7 +53,7 @@ void SteppingAction::UserSteppingAction(const G4Step* step)
 {
   int pdgID = step->GetTrack()->GetDefinition()->GetPDGEncoding();
   // Check that the particle with an ID of 1 always is a tau lepton
-  if ((step->GetTrack()->GetID() == 1) && (pdgID != 15)) {
+  if ((step->GetTrack()->GetTrackID() == 1) && (pdgID != 15)) {
     G4cout << "Parent PDG ID: " << pdgID << G4endl;
     return;
   }
