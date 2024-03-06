@@ -8,4 +8,4 @@
 # Change the default number of threads (in multi-threaded mode)
 #/run/numberOfThreads 4
 /run/initialize
-/run/beamOn 55032
+/run/beamOn 154398
