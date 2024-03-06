@@ -26,10 +26,10 @@ using namespace genie;
 
 // void GetCommandLineArgs (int argc, char ** argv);
 
-int start_ev = 0;
-int end_ev = 500000;
-string input_filename = "../data/gntp.2.ghep.root";
-string output_filename = "../data/genie_tau_pol_data_e5_1.csv";
+int start_ev = 500000;
+int end_ev = 1000000;
+string input_filename = "../data/gntp.3.ghep.root";
+string output_filename = "../data/genie_tau_pol_data_e10_2.csv";
 
 //___________________________________________________________________
 int get_pol_genie() {

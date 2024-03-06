@@ -56,7 +56,7 @@ class SteppingAction : public G4UserSteppingAction
   private:
     EventAction* fEventAction = nullptr;
     std::mutex fileMutex; // Mutex for file access
-    std::string out_filename = "/home/simon/Code/icecube/data/geant4_output_e5.csv";
+    std::string out_filename = "/home/simon/Code/icecube/data/geant4_output_e10.csv";
 };
 
 }
