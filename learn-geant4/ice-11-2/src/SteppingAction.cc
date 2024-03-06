@@ -52,6 +52,12 @@ SteppingAction::SteppingAction(EventAction* eventAction)
 void SteppingAction::UserSteppingAction(const G4Step* step)
 {
   int pdgID = step->GetTrack()->GetDefinition()->GetPDGEncoding();
+  // Check that the particle with an ID of 1 always is a tau lepton
+  if ((step->GetTrack()->GetID() == 1) && (pdgID != 15)) {
+    G4cout << "Parent PDG ID: " << pdgID << G4endl;
+    return;
+  }
+
   // If the parent of the track is a tau lepton and the track is not a tau lepton, print out the track's information
   if (step->GetTrack()->GetParentID() == 1 
       && step->GetTrack()->GetCurrentStepNumber() == 1 // There are multiple steps for each track/particle, so we only pick the first step
@@ -59,6 +65,7 @@ void SteppingAction::UserSteppingAction(const G4Step* step)
     
     auto momentum = step->GetTrack()->GetMomentum();
     // TODO create a RunAction that clears the file and adds a header
+    fileMutex.lock();
     // Open the file in append mode
     std::ofstream outputFile(out_filename, std::ios_base::app);
     if (outputFile.is_open()) {
