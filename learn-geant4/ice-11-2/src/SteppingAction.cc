@@ -45,7 +45,19 @@ namespace B1
 
 SteppingAction::SteppingAction(EventAction* eventAction)
 : fEventAction(eventAction)
-{}
+{
+  // Read settings.yaml, find the energy and input it into the file name
+  std::ifstream settingsFile("/home/simon/Code/icecube/icecube-tau-decays/settings.yaml");
+  // Iterate over each line and if the first characters are "energy", split the line at the space and take the second element
+  for (std::string line; std::getline(settingsFile, line); ) {
+    if (line.substr(0, 8) == "energy: ") {
+      out_filename = "/home/simon/Code/icecube/data/geant4_output_e" + line.substr(8) + ".csv";
+      // G4cout << "Output file: " << out_filename << G4endl;
+      break;
+    }
+  }
+  settingsFile.close();
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
