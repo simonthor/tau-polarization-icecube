@@ -82,9 +82,12 @@ void SteppingAction::UserSteppingAction(const G4Step* step)
         // Handle file open error
         G4cerr << "Error: Unable to open file for writing!" << G4endl;
     }
-
     // Unlock the mutex after writing to the file
     fileMutex.unlock();
+    
+    // Kill a particle to stop it from propagating further and/or decaying
+    step->GetTrack()->SetTrackStatus(fStopAndKill);
+    
     // G4cout << "Track ID: " << step->GetTrack()->GetTrackID() << G4endl;
     // G4cout << "PDG ID: " << step->GetTrack()->GetDefinition()->GetPDGEncoding() << G4endl;
     // G4cout << "Energy: " << step->GetTrack()->GetTotalEnergy() / GeV << G4endl;
