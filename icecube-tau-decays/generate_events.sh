@@ -17,13 +17,6 @@ for line in $(cat settings.yaml); do
     run=$(echo $line | cut -d' ' -f2)
   elif [[ $line == pdg* ]]; then
     pdg=$(echo $line | cut -d' ' -f2)
-
-  # Indicates which process to start from. 
-  #  1: from beginning.
-  #  2: skip GENIE.
-  #  3: skip conversion from root to csv.
-  #  4: skip conversion from csv to HepMC file and tau csv file generation.
-  #  5: skip Tauola simulations.
   elif [[ $line == start_step* ]]; then
     start_step=$(echo $line | cut -d' ' -f2)
   fi
