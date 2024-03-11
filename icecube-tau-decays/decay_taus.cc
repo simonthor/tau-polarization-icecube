@@ -58,11 +58,35 @@ int main(int argc, char **argv) {
   // No limit for the number of warnings
   Log::SetWarningLimit(0);
 
-  if( argc<4 ) {
-      std::cout << "Usage: " << argv[0] << " <HepMC3_input_file> <output_file> [polx poly polz] [polfile]" << std::endl;
+  if(argc <= 3) {
+      std::cout << "Usage: " << argv[0] << " <HepMC3_input_file> <output_file> [polx poly polz] [polfile] [-r]\n"
+      << "HepMC3_input_file : The HepMC3 input file name with tau leptons that have not been decayed.\n"
+      << "                    The tau lepton status should be 1.\n"
+      << "output_file : the HepMC3 output file name with tau leptons decayed.\n"
+      << "polx poly polz : The polarization vector of the tau lepton.\n"
+      << "                 If the polfile is not given, the polarization vector is set to these values.\n"
+      << "                 If polfile is given, these values are used as the column indices for the polarization vector in the csv file.\n"
+      << "polfile : The csv file with the polarization vectors for the tau leptons.\n" 
+      << "          The first row should contain the column names.\n"
+      << "-r : If this flag is given, radiative corrections are turned off.\n";
       exit(-1);
   }
-  else if (argc == 7) {
+
+  bool radiation = true;
+  // If any of the arguments are -r, set radiative corrections to false and remove it from argv
+  for (int i = 3; i < argc; ++i) {
+    if (string(argv[i]) == "-r") {
+      radiation = false;
+      for (int j = i; j < argc-1; ++j) {
+        argv[j] = argv[j+1];
+      }
+      --argc;
+      std::cout << "Radiative corrections are turned off" << std::endl;
+      break;
+    }
+  }
+
+  if (argc == 7) {
     polfile_given = true;
     polfile = ifstream(argv[6]);
     // If the file cannot be opened, print an error message and exit
@@ -80,10 +104,12 @@ int main(int argc, char **argv) {
   }
 
   int events_parsed = 0;
-
-  Tauola::initialize();
-  // TODO disable radiative correction?
   
+  Tauola::initialize();
+
+  // disable radiative correction if -r flag is given
+  Tauola::setRadiation(radiation);
+
   ReaderAscii input_file (argv[1]);
   WriterAscii output_file (argv[2]);
   // for (int iEvent = 0; iEvent < NumberOfEvents; ++iEvent) {

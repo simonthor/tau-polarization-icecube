@@ -25,12 +25,15 @@ while IFS= read -r line; do
         fi
     elif [[ $line == start_step* ]]; then
         start_step=$(echo $line | cut -d' ' -f2)
+    elif [[ $line == "rad: off" ]]; then
+        rad="-r"
     fi
 done < tauola_settings.yaml
 
 echo "Energy list: ${energy_list[@]}"
 echo "inside_energy_list: $inside_energy_list"
 echo "Start step: $start_step"
+echo "Radiative corrections: $rad"
 
 # iterate over all energies in energy_list
 for energy in "${energy_list[@]}"; do
@@ -41,9 +44,9 @@ for energy in "${energy_list[@]}"; do
     # Define Tauola input dat file name
     input_dat_file=../data/NuTau_$energy.0_GeV_tauola_input.dat
     # Define Tauola output dat file name
-    output_dat_file=../data/NuTau_$energy.0_GeV_tauola_output.dat
+    output_dat_file=../data/NuTau_$energy.0_GeV_tauola_output$rad.dat
     # Define Tauola output dat file name without polarization
-    output_dat_file_nopol=../data/NuTau_$energy.0_GeV_tauola_output_nopol.dat
+    output_dat_file_nopol=../data/NuTau_$energy.0_GeV_tauola_output_nopol$rad.dat
 
     if [ $start_step -lt 2 ]; then
         echo "Converting GENIE csv file to dat file..."
@@ -53,9 +56,9 @@ for energy in "${energy_list[@]}"; do
 
     echo "Running Tauola tau decay simulation with polarization..."
     # Run the Tauola tau decay simulation, with polarization
-    ./decay.o $input_dat_file $output_dat_file 6 7 8 $output_csv_file &> icecube_tauola_run_e$energy.log
+    ./decay.o $input_dat_file $output_dat_file 6 7 8 $output_csv_file $rad &> icecube_tauola_run_e$energy.log
 
     echo "Running Tauola tau decay simulation without polarization..."
     # Run the Tauola tau decay simulation, without polarization
-    ./decay.o $input_dat_file $output_dat_file_nopol 0 0 0 &> icecube_tauola_run_e${energy}_nopol.log
+    ./decay.o $input_dat_file $output_dat_file_nopol 0 0 0 $rad &> icecube_tauola_run_e${energy}_nopol.log
 done
