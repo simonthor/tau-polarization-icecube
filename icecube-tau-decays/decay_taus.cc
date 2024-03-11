@@ -82,6 +82,7 @@ int main(int argc, char **argv) {
   int events_parsed = 0;
 
   Tauola::initialize();
+  // TODO disable radiative correction?
   
   ReaderAscii input_file (argv[1]);
   WriterAscii output_file (argv[2]);
