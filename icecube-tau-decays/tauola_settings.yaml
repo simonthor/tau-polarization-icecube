@@ -1,5 +1,5 @@
 start_step: 2
-rad: off
+rad: on
 energy:
   - 5
   - 10
