@@ -55,7 +55,7 @@ fi
 if [ $start_step -lt 4 ]; then
     echo "Converting GENIE csv file to dat file..."
     # Run python script to convert the file into a dat file, and generate a csv file with only the tau leptons 
-    python convert_genie.py $energy
+    python convert_genie.py -i ../data/genie_tau_pol_data_e${energy}.csv -od ../data/tauola_output_genie_e$energy.dat -oc ../data/genie_pol_e$energy.csv --write-nevents
 fi
 
 if [ $start_step -lt 5 ]; then
