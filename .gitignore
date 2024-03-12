@@ -209,3 +209,4 @@ _deps
 # Project-specific
 data/
 TAUOLA/
+*.gz
