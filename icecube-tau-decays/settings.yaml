@@ -1,7 +1,7 @@
-energy: 7
+energy: 10
 genie_n_events: 1000000
-run: 4
+run: 3
 pdg: 16
-start_step: 1
+start_step: 5
 # The line below will be changed automatically by a program that calculates the number of GENIE events that produced a tau lepton
-tau_n_events: 298
+tau_n_events: 422038
