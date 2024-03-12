@@ -32,7 +32,7 @@ using namespace genie;
 // string output_filename = "../data/genie_tau_pol_data_e10_2.csv";
 
 //___________________________________________________________________
-int get_pol_genie(string input_filename, string output_filename, int start_ev, int end_ev) {
+int get_pol_genie(string input_filename, string output_filename, int start_ev, int end_ev, string output_eventfile = "") {
   
   //-- open the ROOT file and get the TTree & its header
   TTree *           tree = 0;
@@ -59,6 +59,14 @@ int get_pol_genie(string input_filename, string output_filename, int start_ev, i
   csv_file << "event_num,pdg,E,px,py,pz,polx,poly,polz\n";
   
   csv_file.close();
+
+  // Open a csv file with event information, if the filename is specified
+  std::ofstream event_file;
+  if (output_eventfile != "") {
+    event_file.open("../data/event_info.csv");
+    event_file << "event_num,xsec,qel,res,dis,coh,dfr\n";
+    event_file.close();
+  }
 
   //
   // Loop over all events
@@ -88,8 +96,8 @@ int get_pol_genie(string input_filename, string output_filename, int start_ev, i
     while((p=dynamic_cast<GHepParticle *>(event_iter.Next())))
     {
       if (
-        // If the particle is a tau
         (
+          // If the particle is a tau
           (p->Status() == kIStStableFinalState) && (p->Pdg() == kPdgTau)
           // I now include particles where the polarization is not set as well but I am not sure if this is correct. I think it is though.
           // && (p->PolzIsSet())
@@ -125,11 +133,26 @@ int get_pol_genie(string input_filename, string output_filename, int start_ev, i
         << p->E() << "," << p->Px() << "," << p->Py() << "," << p->Pz() << "," 
         << pol.X() << "," << pol.Y() << "," << pol.Z() << "\n";
     }
-
-    // clear current mc event record
-    mcrec->Clear();
     // Close csv file
     csv_file.close();
+
+    if (output_eventfile != "") {
+      // Write event information to event file
+      event_file.open("../data/event_info.csv", std::ofstream::app);
+      
+      Interaction * in = event.Summary();
+      const ProcessInfo & proc = in->ProcInfo();
+      bool qelcc = proc.IsQuasiElastic() && proc.IsWeakCC();
+      bool rescc = proc.IsResonant() && proc.IsWeakCC();
+      bool discc = proc.IsDeepInelastic() && proc.IsWeakCC();
+      bool cohcc = proc.IsCoherentProduction() && proc.IsWeakCC();
+      bool dfrcc = proc.IsDiffractive() && proc.IsWeakCC();
+      event_file << i << "," << event.XSec() << "," << qelcc << "," << rescc << "," << discc << "," << cohcc << "," << dfrcc << "\n";
+      event_file.close();
+    }
+    
+    // clear current mc event record
+    mcrec->Clear();
 
     // if (i % 100000 == 0) {
     //   LOG("myAnalysis", pNOTICE) << "Processed " << i << " events";
