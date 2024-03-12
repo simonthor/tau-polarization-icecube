@@ -6,7 +6,7 @@ import pandas as pd
 def compare_histos(
         nutau, nutau_nopol, nutau_g4, bins, 
         labels=("polarized", "unpolarized (Tauola)", "unpolarized (IceCube)"), 
-        density=None, ax=None, **kwargs):
+        density=None, ax=None, errorbar=False, **kwargs):
     """Plot 3 histograms on the same axis."""
     if ax is None:
         fig, ax = plt.subplots(figsize=(5, 4), layout="constrained")
@@ -14,8 +14,17 @@ def compare_histos(
         fig = ax.get_figure()
 
     for energies, particle_type in zip((nutau, nutau_nopol, nutau_g4), labels):
-        ax.hist(energies, bins=bins, label=particle_type, density=density, histtype="step", lw=2)
-        # TODO add error bars
+        values, _, polygons = ax.hist(energies, bins=bins, label=particle_type, density=density, histtype="step", lw=2)
+        # The error bars should be the sqrt of the number of events in each bin. 
+        # If density is used, the error bars should be 
+        # sqrt(counts) / bin_width / sum(counts) = sqrt(values) / sqrt(sum(counts) * bin_width)
+        if errorbar:
+            color = polygons[0].get_edgecolor()
+            ax.errorbar(
+                (bins[1:] + bins[:-1]) / 2, values, 
+                yerr=np.sqrt(values) / np.sqrt(np.sum(energies.size) * np.diff(bins)) if density else np.sqrt(values),
+                fmt="none", capsize=2, capthick=2, elinewidth=2, ecolor=color,
+            )
 
     ax.set(**kwargs)
     ax.grid(True, alpha=0.5)
