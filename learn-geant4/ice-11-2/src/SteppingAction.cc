@@ -52,8 +52,13 @@ SteppingAction::SteppingAction(EventAction* eventAction)
   for (std::string line; std::getline(settingsFile, line); ) {
     if (line.substr(0, 8) == "energy: ") {
       out_filename = "/home/simon/Code/icecube/data/geant4_output_e" + line.substr(8) + ".csv";
+      energy = std::stod(line.substr(8));
+      tau_out_filename = "/home/simon/Code/icecube/data/geant4_tau_output_e" + line.substr(8) + ".csv";
       // G4cout << "Output file: " << out_filename << G4endl;
       break;
+    }
+    if (line == "g4_tau_info: on") {
+      write_tau_info = true;
     }
   }
   settingsFile.close();
@@ -105,7 +110,55 @@ void SteppingAction::UserSteppingAction(const G4Step* step)
     // G4cout << "Energy: " << step->GetTrack()->GetTotalEnergy() / GeV << G4endl;
     // G4cout << "Momentum: " << step->GetTrack()->GetMomentum() / GeV << G4endl;
   }
+
+  if (!write_tau_info) {
+    return;
+  }
   
+  // If the particle is a tau and it is just created, store its 4-momentum and position
+  if ((step->GetTrack()->GetParentID() == 0)  &&
+       (step->GetTrack()->GetCurrentStepNumber() == 1)) {
+    if (pdgID != 15) {
+      G4cout << "Warning: the initial particle is not a tau lepton\n";
+    }
+    auto momentum = step->GetTrack()->GetMomentum();
+    auto position = step->GetTrack()->GetPosition();
+    fileMutex.lock();
+    std::ofstream outputFile(tau_out_filename, std::ios_base::app);
+    if (outputFile.is_open()) {
+      outputFile << G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID() << ","
+        << pdgID << ","
+        << step->GetTrack()->GetTotalEnergy() / GeV << "," << momentum.x()/GeV << "," << momentum.y()/GeV << "," << momentum.z()/GeV << ","
+        << position.x()/m << "," << position.y()/m << "," << position.z()/m << ",0\n"; // The final 0 indicates that this is the first step in the tau's life
+      outputFile.close();
+    } else {
+      G4cerr << "Error: Unable to open file for writing!" << G4endl;
+    }
+    fileMutex.unlock();
+  }
+  // If the tau is about to decay, store its 4-momentum and position 
+  // If-statement taken from Hadr10 example: https://github.com/Geant4/geant4/blob/master/examples/extended/hadronic/Hadr10/src/SteppingAction.cc
+  if ((step->GetTrack()->GetParentID() == 0)  &&
+       (step->GetPostStepPoint()->GetProcessDefinedStep() != nullptr)  &&
+       (step->GetPostStepPoint()->GetProcessDefinedStep()->GetProcessName().find( "Decay" ) != std::string::npos) ) {
+    if (pdgID != 15) {
+      G4cout << "Warning: the initial particle is not a tau lepton\n";
+    }
+    auto momentum = step->GetTrack()->GetMomentum();
+    auto position = step->GetTrack()->GetPosition();
+    fileMutex.lock();
+    std::ofstream outputFile(tau_out_filename, std::ios_base::app);
+    if (outputFile.is_open()) {
+      outputFile << G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID() << ","
+        << pdgID << ","
+        << step->GetTrack()->GetTotalEnergy() / GeV << "," << momentum.x()/GeV << "," << momentum.y()/GeV << "," << momentum.z()/GeV << ","
+        << position.x()/m << "," << position.y()/m << "," << position.z()/m << ",1\n"; // The final 1 indicates that this is the last step in the tau's life
+      outputFile.close();
+    } else {
+      G4cerr << "Error: Unable to open file for writing!" << G4endl;
+    }
+    fileMutex.unlock();
+  }
 
 }
 

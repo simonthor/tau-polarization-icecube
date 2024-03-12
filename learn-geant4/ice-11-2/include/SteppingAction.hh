@@ -57,6 +57,9 @@ class SteppingAction : public G4UserSteppingAction
     EventAction* fEventAction = nullptr;
     std::mutex fileMutex; // Mutex for file access
     std::string out_filename;
+    double energy; // incoming neutrino energy. Read from settings.yaml
+    std::string tau_out_filename;
+    bool write_tau_info = false;
 };
 
 }

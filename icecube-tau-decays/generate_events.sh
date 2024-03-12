@@ -4,6 +4,8 @@ set -euo pipefail
 IFS=$'\n\t'
 # End of strict mode
 
+g4_tau_info=0
+
 # Read settings.yaml to get all the global parameters
 # Open the file and iterate over the lines
 # For each line, if it starts with energy, set the energy variable (everything after ": "), etc. The variables to set are energy, genie_n_events, run, pdg, start_step
@@ -19,6 +21,8 @@ for line in $(cat settings.yaml); do
     pdg=$(echo $line | cut -d' ' -f2)
   elif [[ $line == start_step* ]]; then
     start_step=$(echo $line | cut -d' ' -f2)
+  elif [[ $line == "g4_tau_info: on" ]]; then
+    g4_tau_info=1
   fi
 done
 
@@ -87,6 +91,11 @@ sed -i '$s/.*/\/run\/beamOn '$tau_events'/' ../learn-geant4/ice-11-2/build/run_d
 echo "Running Geant4 tau decay simulation..."
 
 echo "event_num,pdg,E,px,py,pz" > ../data/geant4_output_e$energy.csv
+
+# Reset tau info file
+if [ $g4_tau_info -eq 1 ]; then
+  echo "event_num,pdg,E,px,py,pz,x,y,z,status" > ../data/geant4_tau_output_e$energy.csv
+fi
 
 # Run Geant4 tau decay simulation
 ../learn-geant4/ice-11-2/build/exampleB1 ../learn-geant4/ice-11-2/build/run_decays.mac &> geant4_run_e$energy.log
