@@ -4,8 +4,7 @@ import pandas as pd
 
 
 def compare_histos(
-        nutau, nutau_nopol, nutau_g4, bins, 
-        labels=("polarized", "unpolarized (Tauola)", "unpolarized (IceCube)"), 
+        datasets: dict[str, np.ndarray], bins: dict[str, np.ndarray],  
         density=None, ax=None, errorbar=False, **kwargs):
     """Plot 3 histograms on the same axis."""
     if ax is None:
@@ -13,8 +12,8 @@ def compare_histos(
     else:
         fig = ax.get_figure()
 
-    for energies, particle_type in zip((nutau, nutau_nopol, nutau_g4), labels):
-        values, _, polygons = ax.hist(energies, bins=bins, label=particle_type, density=density, histtype="step", lw=2)
+    for label, v in datasets.items():
+        values, _, polygons = ax.hist(v, bins=bins, label=label, density=density, histtype="step", lw=2)
         # The error bars should be the sqrt of the number of events in each bin. 
         # If density is used, the error bars should be 
         # sqrt(counts) / bin_width / sum(counts) = sqrt(values) / sqrt(sum(counts) * bin_width)
@@ -22,13 +21,13 @@ def compare_histos(
             color = polygons[0].get_edgecolor()
             ax.errorbar(
                 (bins[1:] + bins[:-1]) / 2, values, 
-                yerr=np.sqrt(values) / np.sqrt(np.sum(energies.size) * np.diff(bins)) if density else np.sqrt(values),
+                yerr=np.sqrt(values) / np.sqrt(np.sum(v.size) * np.diff(bins)) if density else np.sqrt(values),
                 fmt="none", capsize=2, capthick=2, elinewidth=2, ecolor=color,
             )
 
     ax.set(**kwargs)
     ax.grid(True, alpha=0.5)
-    ax.legend(fontsize="large")
+    ax.legend()
 
     return fig, ax
 
@@ -44,27 +43,24 @@ def filter_events(decay_products: pd.DataFrame, col: str, filter_func: callable,
 
 
 def plot_histograms(
-    tauola: dict[int, pd.DataFrame], tauola_nopol: dict[int, pd.DataFrame], icecube: dict[int, pd.DataFrame], /, *,
+    datasets: dict[str, dict[int, pd.DataFrame]], /, *,
     bins: dict[int, np.ndarray], filter_func: callable, plot_func: callable, **kwargs):
     """Plot several subplots, each one containing three histograms. 
     Different subplots correspond to different keys in the dicts (typically incoming neutrino energy)."""
     
-    fig, axs = plt.subplots(ncols=len(tauola), figsize=(4*len(tauola), 4), layout="constrained")
+    d1 = list(datasets.values())[0]
+    fig, axs = plt.subplots(ncols=len(d1), figsize=(4*len(d1), 4), layout="constrained")
 
-    for e, ax in zip(tauola, axs):
+    for e, ax in zip(d1, axs):
         b = bins[e]
-        decay_products_e = tauola[e]
-        decay_products_nopol_e = tauola_nopol[e]
-        decay_products_ic_e = icecube[e]
-
-        # Only select a certain decay mode
-        selected_events = filter_events(decay_products_e, "pdg", filter_func, engine="numba")
-        selected_events_nopol = filter_events(decay_products_nopol_e, "pdg", filter_func, engine="numba")
-        selected_events_ic = filter_events(decay_products_ic_e, "pdg", filter_func, engine="numba")
+        events_to_plot = {}
+        for label, df in datasets.items():
+            # Only select a certain decay mode
+            selected_events = filter_events(df[e], "pdg", filter_func, engine="numba")
+            events_to_plot[label] = plot_func(selected_events)
 
         # Plot the momentum fraction as a histogram from 0 to 1
-        compare_histos(
-            plot_func(selected_events), plot_func(selected_events_nopol), plot_func(selected_events_ic),
-            ax=ax, bins=b, **kwargs,
-        )
+        compare_histos(events_to_plot, ax=ax, bins=b, **kwargs)
+        ax.set_title(f"$E_\\nu = {e}$ GeV")
+    
     return fig, axs
