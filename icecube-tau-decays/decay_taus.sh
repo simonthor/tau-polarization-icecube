@@ -13,7 +13,7 @@ echo "Reading tauola_settings.yaml..."
 energy_list=()
 inside_energy_list=0
 start_step=0
-rad=""
+decay_flags=""
 while IFS= read -r line; do
     if [[ $line == "energy:" ]]; then
         inside_energy_list=1
@@ -27,14 +27,22 @@ while IFS= read -r line; do
     elif [[ $line == start_step* ]]; then
         start_step=$(echo $line | cut -d' ' -f2)
     elif [[ $line == "rad: off" ]]; then
-        rad="-r"
+        decay_flags="-r $decay_flags"
+    elif [[ $line == "boost: on" ]]; then
+        decay_flags="-b $decay_flags"
     fi
 done < tauola_settings.yaml
+
+# Remove the last character from decay_flags
+decay_flags=${decay_flags::-1}
 
 echo "Energy list: ${energy_list[@]}"
 echo "inside_energy_list: $inside_energy_list"
 echo "Start step: $start_step"
-echo "Radiative corrections: $rad"
+echo "Flags passed to decay_taus.cc: $decay_flags"
+
+# Make file end the same as decay_flags but remove all spaces
+file_end=$(echo $decay_flags | tr -d ' ')
 
 # iterate over all energies in energy_list
 for energy in "${energy_list[@]}"; do
@@ -45,9 +53,9 @@ for energy in "${energy_list[@]}"; do
     # Define Tauola input dat file name
     input_dat_file=../data/NuTau_$energy.0_GeV_tauola_input.dat
     # Define Tauola output dat file name
-    output_dat_file=../data/NuTau_$energy.0_GeV_tauola_output$rad.dat
+    output_dat_file=../data/NuTau_$energy.0_GeV_tauola_output$file_end.dat
     # Define Tauola output dat file name without polarization
-    output_dat_file_nopol=../data/NuTau_$energy.0_GeV_tauola_output_nopol$rad.dat
+    output_dat_file_nopol=../data/NuTau_$energy.0_GeV_tauola_output_nopol$file_end.dat
 
     if [ $start_step -lt 2 ]; then
         echo "Converting GENIE csv file to dat file..."
@@ -57,9 +65,9 @@ for energy in "${energy_list[@]}"; do
 
     echo "Running Tauola tau decay simulation with polarization..."
     # Run the Tauola tau decay simulation, with polarization
-    ./decay.o $input_dat_file $output_dat_file 6 7 8 $output_csv_file $rad &> icecube_tauola_run_e$energy.log
+    ./decay.o $input_dat_file $output_dat_file 6 7 8 $output_csv_file $decay_flags &> icecube_tauola_run_e$energy.log
 
     echo "Running Tauola tau decay simulation without polarization..."
     # Run the Tauola tau decay simulation, without polarization
-    ./decay.o $input_dat_file $output_dat_file_nopol 0 0 0 $rad &> icecube_tauola_run_e${energy}_nopol.log
+    ./decay.o $input_dat_file $output_dat_file_nopol 0 0 0 $decay_flags &> icecube_tauola_run_e${energy}_nopol.log
 done

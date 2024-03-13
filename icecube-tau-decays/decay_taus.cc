@@ -22,6 +22,36 @@ using namespace Tauolapp;
 using namespace HepMC3;
 
 
+/*
+   Simple boost routine example.
+   Note that this routine will not respect direction of polarization vector along boost direction,
+   thus (0,0,1) does not mean helicity state. This is simply z component of spin for tau
+   with momentum px,py,pz. Can be thus helicitywise anything in range (-1,1).
+*/
+void simpleBoost(TauolaParticle *tau, TauolaParticle *target)
+{
+  double p1=tau->getPx();
+  double p2=tau->getPy();
+  double p3=tau->getPz();
+  double E =tau->getE();
+  double m =tau->getMass();
+
+  double betx=p1/m;
+  double bety=p2/m;
+  double betz=p3/m;
+
+  double gam=E/m;
+
+  double pb=betx*target->getPx()+bety*target->getPy()+betz*target->getPz();
+
+  target->setPx(target->getPx()+betx*(target->getE()+pb/(gam+1.0)));
+  target->setPy(target->getPy()+bety*(target->getE()+pb/(gam+1.0)));
+  target->setPz(target->getPz()+betz*(target->getE()+pb/(gam+1.0)));
+
+  target->setE(target->getE()*gam+pb);
+}
+
+
 vector<double> get_pol_vec(string& line, vector<int>& pol_vec_i, GenEvent& evt) {
   // Read a line in the csv file and get the polarization vector
   stringstream ss(line);
@@ -68,24 +98,41 @@ int main(int argc, char **argv) {
       << "                 If polfile is given, these values are used as the column indices for the polarization vector in the csv file.\n"
       << "polfile : The csv file with the polarization vectors for the tau leptons.\n" 
       << "          The first row should contain the column names.\n"
-      << "-r : If this flag is given, radiative corrections are turned off.\n";
+      << "-r : If this flag is given, radiative corrections are turned off.\n"
+      << "-b : Set boost routine to simpleBoost. This is used if the input tau polarization is in the lab frame.\n";
+
       exit(-1);
   }
 
   bool radiation = true;
+  bool set_boost = false;
   // If any of the arguments are -r, set radiative corrections to false and remove it from argv
   for (int i = 3; i < argc; ++i) {
+    bool argfound = false;
     if (string(argv[i]) == "-r") {
       radiation = false;
-      for (int j = i; j < argc-1; ++j) {
-        argv[j] = argv[j+1];
-      }
-      --argc;
-      std::cout << "Radiative corrections are turned off" << std::endl;
+      argfound = true;
+      cout << "Radiative corrections are turned off" << std::endl;
       break;
+    }
+    else if (string(argv[i]) == "-b") {
+      cout << "Boost routine is activated" << std::endl;
+      set_boost = true;
+      argfound = true;
+    }
+
+    if (argfound) {
+      for (int j = i; j < argc-1; ++j) {
+          argv[j] = argv[j+1];
+        }
+        --argc;
     }
   }
 
+  // Print argv
+  for (int i = 0; i < argc; ++i) {
+    cout << "argv[" << i << "]: " << argv[i] << endl;
+  }
   if (argc == 7) {
     polfile_given = true;
     polfile = ifstream(argv[6]);
@@ -144,6 +191,9 @@ int main(int argc, char **argv) {
             pol_vec[2] /= norm;
             norm = pol_vec[0]*pol_vec[0] + pol_vec[1]*pol_vec[1] + pol_vec[2]*pol_vec[2];
           }
+        }
+        if (set_boost) {
+          Tauola::setBoostRoutine(simpleBoost);
         }
         // Decay the particle with the specified polarization
         Tauola::decayOne(htau, false, pol_vec[0], pol_vec[1], pol_vec[2]);
