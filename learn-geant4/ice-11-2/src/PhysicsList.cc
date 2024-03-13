@@ -7,7 +7,6 @@
 // #include "G4RadioactiveDecayPhysics.hh"
 // #include "G4HadronPhysicsFTFP_BERT.hh"
 // #include "G4EmExtraPhysics.hh"
-// TODO try to copy the relevant files related to G4NeutrinoPhysics and compile together with the rest
 // #include "G4NeutrinoPhysics.hh"
 
 namespace B1
