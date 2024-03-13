@@ -13,6 +13,7 @@ echo "Reading tauola_settings.yaml..."
 energy_list=()
 inside_energy_list=0
 start_step=0
+rad=""
 while IFS= read -r line; do
     if [[ $line == "energy:" ]]; then
         inside_energy_list=1
