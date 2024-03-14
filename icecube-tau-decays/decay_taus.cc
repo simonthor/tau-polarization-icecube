@@ -109,6 +109,7 @@ int main(int argc, char **argv) {
   // If any of the arguments are -r, set radiative corrections to false and remove it from argv
   for (int i = 3; i < argc; ++i) {
     bool argfound = false;
+
     if (string(argv[i]) == "-r") {
       radiation = false;
       argfound = true;
@@ -138,7 +139,7 @@ int main(int argc, char **argv) {
     polfile = ifstream(argv[6]);
     // If the file cannot be opened, print an error message and exit
     if (!polfile.is_open()) {
-      cout << "Could not open file " << argv[3] << endl;
+      cout << "Could not open file " << argv[6] << endl;
       exit(-1);
     }
     pol_vec_i = {stoi(argv[3]), stoi(argv[4]), stoi(argv[5])};
@@ -185,18 +186,22 @@ int main(int argc, char **argv) {
           // If the polarization vector has a norm > 1, normalize it to have a norm of 1. 
           // This is caused by floating point errors
           double norm = pol_vec[0]*pol_vec[0] + pol_vec[1]*pol_vec[1] + pol_vec[2]*pol_vec[2];
+          // Extract event number. It is all text in the line before the first comma
+          // int event_num = stoi(line.substr(0, line.find(',')));
+          // cout << "event_num: " << event_num << " pol_vec: " << pol_vec[0] << " " << pol_vec[1] << " " << pol_vec[2] << endl;
           while (norm > 1) {
             pol_vec[0] /= norm;
             pol_vec[1] /= norm;
             pol_vec[2] /= norm;
             norm = pol_vec[0]*pol_vec[0] + pol_vec[1]*pol_vec[1] + pol_vec[2]*pol_vec[2];
           }
+          // cout << "pol_vec after normalization: " << pol_vec[0] << " " << pol_vec[1] << " " << pol_vec[2] << endl;
         }
         if (set_boost) {
           Tauola::setBoostRoutine(simpleBoost);
         }
         // Decay the particle with the specified polarization
-        Tauola::decayOne(htau, false, pol_vec[0], pol_vec[1], pol_vec[2]);
+        Tauola::decayOne(htau, true, pol_vec[0], pol_vec[1], pol_vec[2]);
         break;
       }
     }
