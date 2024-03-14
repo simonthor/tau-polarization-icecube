@@ -58,6 +58,7 @@ for energy in "${energy_list[@]}"; do
     output_dat_file=../data/NuTau_$energy.0_GeV_tauola_output$file_end.dat
     # Define Tauola output dat file name without polarization
     output_dat_file_nopol=../data/NuTau_$energy.0_GeV_tauola_output_nopol$file_end.dat
+    output_dat_file_lpol=../data/NuTau_$energy.0_GeV_tauola_output_lpol$file_end.dat
 
     if [ $start_step -lt 2 ]; then
         echo "Converting GENIE csv file to dat file..."
@@ -72,4 +73,8 @@ for energy in "${energy_list[@]}"; do
     echo "Running Tauola tau decay simulation without polarization..."
     # Run the Tauola tau decay simulation, without polarization
     ./decay.o $input_dat_file $output_dat_file_nopol 0 0 0 $decay_flags &> icecube_tauola_run_e${energy}_nopol.log
+
+    echo "Running Tauola tau decay simulation with fully left-handed polarization..."
+    # Run the Tauola tau decay simulation, without polarization
+    ./decay.o $input_dat_file $output_dat_file_lpol 0 0 -1 $decay_flags &> icecube_tauola_run_e${energy}_lpol.log
 done
