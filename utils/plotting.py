@@ -27,7 +27,7 @@ def compare_histos(
 
     ax.set(**kwargs)
     ax.grid(True, alpha=0.5)
-    ax.legend()
+    # ax.legend()
 
     return fig, ax
 
@@ -51,7 +51,7 @@ def plot_histograms(
     d1 = list(datasets.values())[0]
     fig, axs = plt.subplots(ncols=len(d1), figsize=(4*len(d1), 4), layout="constrained")
 
-    for e, ax in zip(d1, axs):
+    for i, (e, ax) in enumerate(zip(d1, axs)):
         b = bins[e]
         events_to_plot = {}
         for label, df in datasets.items():
@@ -62,5 +62,7 @@ def plot_histograms(
         # Plot the momentum fraction as a histogram from 0 to 1
         compare_histos(events_to_plot, ax=ax, bins=b, **kwargs)
         ax.set_title(f"$E_\\nu = {e}$ GeV")
-    
+        if i==0:
+            ax.legend()
+        
     return fig, axs
