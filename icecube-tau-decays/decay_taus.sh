@@ -33,8 +33,10 @@ while IFS= read -r line; do
     fi
 done < tauola_settings.yaml
 
-# Remove the last character from decay_flags
-decay_flags=${decay_flags::-1}
+# Remove the last character from decay_flags, if it is not empty
+if [[ ${#decay_flags} -gt 0 ]]; then
+    decay_flags=${decay_flags::-1}
+fi
 
 echo "Energy list: ${energy_list[@]}"
 echo "inside_energy_list: $inside_energy_list"
@@ -66,7 +68,7 @@ for energy in "${energy_list[@]}"; do
     echo "Running Tauola tau decay simulation with polarization..."
     # Run the Tauola tau decay simulation, with polarization
     ./decay.o $input_dat_file $output_dat_file 6 7 8 $output_csv_file $decay_flags &> icecube_tauola_run_e$energy.log
-
+    
     echo "Running Tauola tau decay simulation without polarization..."
     # Run the Tauola tau decay simulation, without polarization
     ./decay.o $input_dat_file $output_dat_file_nopol 0 0 0 $decay_flags &> icecube_tauola_run_e${energy}_nopol.log
