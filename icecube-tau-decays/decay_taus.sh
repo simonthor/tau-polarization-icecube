@@ -93,6 +93,6 @@ for energy in "${energy_list[@]}"; do
     if [ $start_step -lt 7 ]; then
         echo "Running Pythia tau decay simulation with left-handed polarization..."
         # Run the Tauola tau decay simulation, without polarization
-        ./python $input_csv_file pythia_tau_decays_e${energy}_lpol.csv -p 0 &> pythia_tau_decays_e${energy}_lpol.log
+        ./python $input_csv_file pythia_tau_decays_e${energy}_lpol.csv -p -1 &> pythia_tau_decays_e${energy}_lpol.log
     fi
 done
