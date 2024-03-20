@@ -66,15 +66,27 @@ for energy in "${energy_list[@]}"; do
         python convert_genie.py -i $input_csv_file -oc $output_csv_file -od $input_dat_file
     fi
 
-    echo "Running Tauola tau decay simulation with polarization..."
-    # Run the Tauola tau decay simulation, with polarization
-    ./decay.o $input_dat_file $output_dat_file 6 7 8 $output_csv_file $decay_flags &> icecube_tauola_run_e$energy.log
-    
-    echo "Running Tauola tau decay simulation without polarization..."
-    # Run the Tauola tau decay simulation, without polarization
-    ./decay.o $input_dat_file $output_dat_file_nopol 0 0 0 $decay_flags &> icecube_tauola_run_e${energy}_nopol.log
+    if [ $start_step -lt 3 ]; then
+        echo "Running Tauola tau decay simulation with polarization..."
+        # Run the Tauola tau decay simulation, with polarization
+        ./decay.o $input_dat_file $output_dat_file 6 7 8 $output_csv_file $decay_flags &> icecube_tauola_run_e$energy.log
+    fi
 
-    echo "Running Tauola tau decay simulation with fully left-handed polarization..."
-    # Run the Tauola tau decay simulation, without polarization
-    ./decay.o $input_dat_file $output_dat_file_lpol 0 0 -1 $decay_flags &> icecube_tauola_run_e${energy}_lpol.log
+    if [ $start_step -lt 4 ]; then
+        echo "Running Tauola tau decay simulation without polarization..."
+        # Run the Tauola tau decay simulation, without polarization
+        ./decay.o $input_dat_file $output_dat_file_nopol 0 0 0 $decay_flags &> icecube_tauola_run_e${energy}_nopol.log
+    fi
+
+    if [ $start_step -lt 5 ]; then
+        echo "Running Tauola tau decay simulation with fully left-handed polarization..."
+        # Run the Tauola tau decay simulation, without polarization
+        ./decay.o $input_dat_file $output_dat_file_lpol 0 0 -1 $decay_flags &> icecube_tauola_run_e${energy}_lpol.log
+    fi
+    
+    if [ $start_step -lt 6 ]; then
+        echo "Running Pythia tau decay simulation with without polarization..."
+        # Run the Tauola tau decay simulation, without polarization
+        ./python $input_dat_file $output_dat_file_lpol 0 0 -1 $decay_flags &> icecube_tauola_run_e${energy}_lpol.log
+    fi
 done
