@@ -32,7 +32,10 @@ def main():
     # this is the trick to make Pythia8 work as "decayer"
     pythia.readString("ProcessLevel:all = off")
     pythia.readString("ProcessLevel:resonanceDecays=on")
-
+    
+    # Set tau polarization
+    pythia.readString(f"TauDecays:mode = 3")
+    pythia.readString(f"TauDecays:tauPolarization = {polarization}")
     # shut off Pythia8 (default) verbosity
     # fDecayer->readString("Init:showAllSettings=false");
     # fDecayer->readString("Init:showChangedSettings=false");
@@ -46,7 +49,9 @@ def main():
     
     # Disable pion decay
     pythia.readString("111:onMode = off")
+    # Disable some other decays. Not sure if these really help. Maybe I should do this for other hadrons, e.g. pi- too
     pythia.readString("310:onMode = off")
+    pythia.readString("221:onMode = off")
 
     pythia.init()
     with open(output_filename, "w") as f:
@@ -71,8 +76,8 @@ def main():
             tau.px, tau.py, tau.pz, tau.E, tau_mass
         )
         
-        # Set polarization
-        pythia.event.back().pol(polarization)
+        # Set polarization. This seems to have the opposite effect
+        # pythia.event.back().pol(polarization)
 
         # Generate the decay
         pythia.next()
