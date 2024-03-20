@@ -33,7 +33,7 @@ def main():
     pythia.readString("ProcessLevel:all = off")
     pythia.readString("ProcessLevel:resonanceDecays=on")
     
-    # Set tau polarization
+    # Set tau polarization. See https://pythia.org/latest-manual/ParticleDecays.html#section2
     pythia.readString(f"TauDecays:mode = 3")
     pythia.readString(f"TauDecays:tauPolarization = {polarization}")
     # shut off Pythia8 (default) verbosity
