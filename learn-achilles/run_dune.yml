@@ -1,0 +1,68 @@
+Main:
+  NEvents: 1000000
+  HardCuts: true
+  EventCuts: false
+  DoRotate: false
+  Output:
+      Format: HepMC3
+      Name: dune_full_left.hepmc
+      # Name: dune_16_30.hepmc
+      Zipped: True
+
+Process:
+  Model: DarkNeutrinoPortal_Dirac_UFO
+  Final States: [12]
+  ParamCard: parameters.dat
+
+Initialize:
+  Seed: 12345678
+  Accuracy: 1e-2
+
+Unweighting:
+  Name: Percentile
+  percentile: 99
+
+Beams:
+  - Beam:
+      PID: 12
+      Beam Params:
+        Type: Spectrum
+        Histogram: ./flux/histos_g4lbne_v3r5p4_QGSP_BERT_OptimizedEngineeredNov2017_neutrino_DUNEND_00.00mrad_globes_flux.txt
+        Emin: 0
+        Emax: 10000
+        Energy: 3000
+
+Cascade:
+  Run: False
+  Interaction:
+    Name: GeantInteractions
+    GeantData: data/GeantData.hdf5
+  Step: 0.04
+  Probability: Cylinder
+
+NuclearModel:
+  Model: QESpectral
+  FormFactorFile: "FormFactors.yml"
+  SpectralP: data/pke12_tot.data
+  SpectralN: data/pke12_tot.data
+  Ward: False
+
+Nucleus:
+  Name: 12C
+  Binding: 8.6
+  Fermi Momentum: 225
+  Density:
+    File: data/c12.prova.txt
+    FilePotential: data/realOP_12C_EDAI.dat
+    Function: configuration
+    Configs: data/configurations/QMC_configs.out.gz
+  FermiGas: Local
+  Potential: 
+    Name: Schroedinger
+    r0: 0.16
+    Mode: 3
+
+HardCuts:
+  - Type: AngleTheta
+    PIDs: 11
+    range: [35, 39]
