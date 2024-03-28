@@ -210,3 +210,5 @@ _deps
 data/
 TAUOLA/
 *.gz
+learn-achilles/SHERPA-MC-2.2.12/
+learn-achilles/Achilles/
