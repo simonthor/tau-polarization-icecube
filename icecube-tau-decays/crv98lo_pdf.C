@@ -33,42 +33,56 @@ int crv98lo_pdf(std::string input_file, std::string output_file) {
     std::stringstream s(line);
     int index = 0;
     
-    int xcol, Q2col, nuc_pdgcol;
+    int xcol, Q2col, nuc_pdgcol, discol;
 
     // Identify the index where the value is "x" and "Q2"
-    while (std::getline(s, word, ",")) {
-        if (word == "x") {
+    while (std::getline(s, word, ',')) {
+        std::cout << word << std::endl;
+        if (word == "xs") {
             xcol = index;
-        } else if (word == "Q2") {
+        } else if (word == "Q2s") {
             Q2col = index;
-        } else if (word == "nuc_pdgc") {
-            nuc_pdgcol = std::stoi(word);
+        } else if (word == "hitnuc") {
+            nuc_pdgcol = index;
+        } else if (word == "dis") {
+            discol = index;
         }
+        index++;
     }
+    std::cout << "xcol: " << xcol << ", Q2col: " << Q2col << ", nuc_pdgcol: " << nuc_pdgcol << ", discol: " << discol << std::endl;
+
     // Open output file and write header to it
     std::ofstream ofile(output_file);
     ofile << line << ",fuv,fus,fdv,fds,fs,fc" << std::endl;
 
     double x, Q2;
     int nuc_pdgc;
+    bool dis;
     // Read the rest of the lines and compute the PDF at each (x, Q2)
     while (std::getline(file, line)) {
         std::stringstream s(line);
         index = 0;
-        while (std::getline(s, word, ",")) {
+        while (std::getline(s, word, ',')) {
             if (index == xcol) {
                 x = std::stod(word);
             } else if (index == Q2col) {
                 Q2 = std::stod(word);
-            } else if (index == nuc_pdgc) {
+            } else if (index == nuc_pdgcol) {
                 nuc_pdgc = std::stoi(word);
+            } else if (index == discol) {
+                // Set dis to True or False
+                dis = word == "True";
             }
             index++;
         }
 
+        if (!dis) {
+            ofile << line << ",,,,,,\n";
+            continue;
+        }
+
         // Reset PDF
         fPDF->Reset();
-        
         // Calculate PDF at (x, Q2)
         double Q2pdf =  TMath::Max(Q2, fQ2min);
         fPDF->Calculate(x, Q2pdf);
@@ -91,10 +105,11 @@ int crv98lo_pdf(std::string input_file, std::string output_file) {
         // Write to output file
         ofile << line << "," << fuv << "," << fus << "," << fdv << "," << fds << "," << fs << "," << fc << std::endl;
     }
+
     ofile.close();
     file.close();
-    del fPDF;
-    del pdf_model;
+    delete fPDF;
+    delete pdf_model;
     
     return 0;
 }
