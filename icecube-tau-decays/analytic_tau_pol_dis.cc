@@ -133,7 +133,7 @@ std::vector<double> CalculatePDFs(double x, double Q2val, double M, int nuc_pdgc
 
   KFactors(Q2val, kval_u, kval_d, ksea_u, ksea_d);
 
-  std::cout << "K factors: " << kval_u << " " << kval_d << " " << ksea_u << " " << ksea_d << std::endl;
+  // std::cout << "K factors: " << kval_u << " " << kval_d << " " << ksea_u << " " << ksea_d << std::endl;
   // Apply the K factors
   //
   // Always scale d pdfs with d kfactors and u pdfs with u kfactors.
@@ -174,7 +174,6 @@ std::vector<double> CalculatePDFs(double x, double Q2val, double M, int nuc_pdgc
   double fds   = fPDF  -> DownSea();
   double fs    = fPDF  -> Strange();
   double fc    = 0.;
-  // std::cout << "fuv: " << fuv << " fus: " << fus << " fdv: " << fdv << " fds: " << fds << " fs: " << fs << " fc: " << fc << std::endl;
   
   // will be 0 if < charm threshold
   double fuv_c = fPDFc -> UpValence();   
@@ -183,7 +182,11 @@ std::vector<double> CalculatePDFs(double x, double Q2val, double M, int nuc_pdgc
   double fds_c = fPDFc -> DownSea();    
   double fs_c  = fPDFc -> Strange();    
   double fc_c  = fPDFc -> Charm();      
-  // std::cout << "fuv_c: " << fuv_c << " fus_c: " << fus_c << " fdv_c: " << fdv_c << " fds_c: " << fds_c << " fs_c: " << fs_c << " fc_c: " << fc_c << std::endl;
+  
+  if (above_charm) {
+    // std::cout << "fuv: " << fuv << " fus: " << fus << " fdv: " << fdv << " fds: " << fds << " fs: " << fs << " fc: " << fc << std::endl;
+    std::cout << "fuv_c: " << fuv_c << " fus_c: " << fus_c << " fdv_c: " << fdv_c << " fds_c: " << fds_c << " fs_c: " << fs_c << " fc_c: " << fc_c << std::endl;
+  }
 
   // The above are the proton parton density function. Get the PDFs for the
   // hit nucleon (p or n) by swapping u<->d if necessary
@@ -348,7 +351,7 @@ int analytic_tau_pol_dis(std::string input_file, std::string output_file) {
         discol = index;
     } else if (word == "atom") {
         Acol = index;
-    } else if (word == "M") {
+    } else if (word == "Mnuc") {
         Mcol = index;
     }
     index++;
@@ -388,7 +391,7 @@ int analytic_tau_pol_dis(std::string input_file, std::string output_file) {
     }
     
     if (!dis) {
-      ofile << line << ",,,,,,\n";
+      ofile << line << ",,,,,\n";
       continue;
     }
 
@@ -398,7 +401,7 @@ int analytic_tau_pol_dis(std::string input_file, std::string output_file) {
     // Modify x to use the BY scaling variable
     x = ScalingVar(x, Q2val, fA, fB);
     // Q2 is left as it is
-
+    // std::cout << "Björken x: " << bjx << ", Modified x: " << x << ", Q2: " << Q2val << std::endl;
     // Compute PDFs
     std::vector<double> pdf_values = CalculatePDFs(x, Q2val, M, nuc_pdgc, fPDF, fPDFc);
     // Compute structure functions
