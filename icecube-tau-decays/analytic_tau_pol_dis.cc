@@ -14,89 +14,411 @@
 #include "Physics/PartonDistributions/GRV98LO.h"
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/Utils/KineUtils.h"
-// #include "Physics/NuclearState/NuclearUtils.h"
-// #include "Framework/Utils/PhysUtils.h"
+#include "Physics/NuclearState/NuclearUtils.h"
+#include "Framework/Utils/PhysUtils.h"
 
 using namespace genie;
 
+// CKM mixing matrix constants
+const double fVud2 = TMath::Power(0.97417, 2.);
+const double fVus2 = TMath::Power(0.2248, 2.);
+const double fVcd2 = TMath::Power(0.220, 2.);
+const double fVcs2 = TMath::Power(0.995, 2.);
+// include an R (~FL) factor into the calculation
+const bool fIncludeR = true;
+// include a nuclear factor (accounting for shadowing/anti-shadowing)
+const bool fIncludeNuclMod = true;
+// include corrections for calculating relation between 2xF1 and F2
+const bool fUse2016Corrections = false;
+// Select value for Q2 cutoff in relation between 2xF1 and F2
+const double fLowQ2CutoffF1F2 = 0.8;
+// BY constants
+const double fA = 0.538;
+const double fB = 0.305;
+const double fCsU = 0.363;
+const double fCsD = 0.621;
+const double fCv1U = 0.291;
+const double fCv2U = 0.189;
+const double fCv1D = 0.202;
+const double fCv2D = 0.255;
+
 
 int analytic_tau_pol_dis() {
-    const PDFModelI * pdf_model =
-         dynamic_cast<const PDFModelI *> (new GRV98LO());
-    PDF* fPDF =  new PDF();
-    // PDF used when above charm production threshold
-    PDF* fPDFc = new PDF();
+  // Open input file, and read the first line. 
+  std::ifstream file(input_file);
+  std::string line, word;
+  std::getline(file, line);
+  std::stringstream s(line);
+  int index = 0;
+
+  int xcol, Q2col, nuc_pdgcol, discol, Acol, Mcol;
+
+  // Identify the index where the value is "x" and "Q2"
+  while (std::getline(s, word, ',')) {
+    std::cout << word << std::endl;
+    if (word == "xs") {
+        xcol = index;
+    } else if (word == "Q2s") {
+        Q2col = index;
+    } else if (word == "hitnuc") {
+        nuc_pdgcol = index;
+    } else if (word == "dis") {
+        discol = index;
+    } else if (word == "atom") {
+        Acol = index;
+    } else if (word == "M") {
+        Mcol = index;
+    }
+    index++;
+  }
+
+  std::cout << "xcol: " << xcol << ", Q2col: " << Q2col 
+    << ", nuc_pdgcol: " << nuc_pdgcol << ", discol: " << discol 
+    << ", Acol" << Acol << ", Mcol: " << Mcol << std::endl;
+
+  // Open output file and write header to it
+  std::ofstream ofile(output_file);
+  ofile << line << ",F1,F2,F3,F4,F5" << std::endl;
+  
+  double x, Q2val, M;
+  int nuc_pdgc, A;
+  bool dis;
+  // Read the rest of the lines and compute the PDF at each (x, Q2)
+  while (std::getline(file, line)) {
+    std::stringstream s(line);
+    index = 0;
+    while (std::getline(s, word, ',')) {
+      if (index == xcol) {
+          x = std::stod(word);
+      } else if (index == Q2col) {
+          Q2val = std::stod(word);
+      } else if (index == nuc_pdgcol) {
+          nuc_pdgc = std::stoi(word);
+      } else if (index == discol) {
+          // Set dis to True or False
+          dis = word == "True";
+      } else if (index == Acol) {
+          A = std::stoi(word);
+      } else if (index == Mcol) {
+          M = std::stod(word);
+      }
+      index++;
+    }
     
-    fPDF->SetModel(pdf_model);
-    fPDFc->SetModel(pdf_model);
-    
-    fPDF->Reset();
-    fPDFc->Reset();
-
-    // Source: https://github.com/GENIE-MC/Generator/blob/1817b89cf815c0694c187f874288f1c1be1e712a/config/GRV98LO.xml#L11
-    const double fQ2min = 0.800;
-    // Charm mass, in GeV, according to Wikipedia
-    const double fMc = 1.27; 
-
-    // Variables to be read from a file
-    double x = 0.1;
-    double Q2 = 0.7; // Q2 in GeV^2
-    double M = 0.938; // Hit nucleon mass, in GeV
-    double nuc_pdgc = 2212; // Hit nucleon PDG code. 2212 is a proton, 2112 is a neutron
-
-    double Q2pdf =  TMath::Max(Q2, fQ2min);
-
-    // Compute PDFs at (x,Q2)
-    fPDF->Calculate(x, Q2pdf);
-
-    bool above_charm = utils::kinematics::IsAboveCharmThreshold(x, Q2, M, fMc);
-    if(above_charm) {
-        // compute the slow rescaling var
-        double xc = utils::kinematics::SlowRescalingVar(x, Q2, M, fMc);
-        if(xc<0 || xc>1) {
-            std::cout << "Unphysical slow rescaling var: xc = " << xc;
-            // return 1;
-        } else {
-            // compute PDFs at (xc,Q2)
-            fPDFc->Calculate(xc, Q2pdf);
-        }
+    if (!dis) {
+      ofile << line << ",,,,,,\n";
+      continue;
     }
 
-    double fuv =  fPDF  -> UpValence();
-    double fus   = fPDF  -> UpSea();
-    double fdv   = fPDF  -> DownValence();
-    double fds   = fPDF  -> DownSea();
-    double fs    = fPDF  -> Strange();
-    double fc    = 0.;
-    std::cout << "fuv: " << fuv << " fus: " << fus << " fdv: " << fdv << " fds: " << fds << " fs: " << fs << " fc: " << fc << std::endl;
+    // Save regular Björken x in a variable, as a modified x will be used for many other calculations
+    double bjx = x;
+
+    // Modify x to use the BY scaling variable
+    x = ScalingVar(x, Q2val, fA, fB);
+    // Q2 is left as it is
+
+    // Compute PDFs
+    std::vector<double> pdf_values = CalculatePDFs(x, Q2val, M, nuc_pdgc);
+    // Compute structure functions
+    std::vector<double> Fs = structureFunctions(pdf_values, Q2val, x, bjx, A);
     
-    // will be 0 if < charm threshold
-    double fuv_c = fPDFc -> UpValence();   
-    double fus_c = fPDFc -> UpSea();
-    double fdv_c = fPDFc -> DownValence();
-    double fds_c = fPDFc -> DownSea();    
-    double fs_c  = fPDFc -> Strange();    
-    double fc_c  = fPDFc -> Charm();      
-    std::cout << "fuv_c: " << fuv_c << " fus_c: " << fus_c << " fdv_c: " << fdv_c << " fds_c: " << fds_c << " fs_c: " << fs_c << " fc_c: " << fc_c << std::endl;
+    // Write to output file
+    ofile << line << "," << Fs[0] << "," << Fs[1] << "," << Fs[2] << "," << Fs[3] << "," << Fs[4] << std::endl;
+  }
 
-    // The above are the proton parton density function. Get the PDFs for the
-    // hit nucleon (p or n) by swapping u<->d if necessary
-    bool isP = pdg::IsProton  (nuc_pdgc);
-    bool isN = pdg::IsNeutron (nuc_pdgc);
-    assert(isP || isN);
-
-    double tmp = 0;
-    if (isN) {  // swap u <-> d
-        tmp = fuv;   fuv   = fdv;   fdv   = tmp;
-        tmp = fus;   fus   = fds;   fds   = tmp;
-        tmp = fuv_c; fuv_c = fdv_c; fdv_c = tmp;
-        tmp = fus_c; fus_c = fds_c; fds_c = tmp;
-    }
-
-    return 0;
+  ofile.close();
+  file.close();
+  
+  return 0;
 }
 
 
+std::vector<double> CalculatePDFs(double x, double Q2val, double M, int nuc_pdgc) {
+  // Minimum Q2 value for PDF calculation
+  // Source: https://github.com/GENIE-MC/Generator/blob/1817b89cf815c0694c187f874288f1c1be1e712a/config/GRV98LO.xml#L11
+  const double fQ2min = 0.800;
+  // Charm mass, in GeV, according to Wikipedia
+  const double fMc = 1.27; 
+
+  // PDF model
+  const PDFModelI * pdf_model =
+        dynamic_cast<const PDFModelI *> (new GRV98LO());
+  PDF* fPDF =  new PDF();
+  // PDF used when above charm production threshold
+  PDF* fPDFc = new PDF();
+  
+  fPDF->SetModel(pdf_model);
+  fPDFc->SetModel(pdf_model);
+
+  double Q2pdf =  TMath::Max(Q2val, fQ2min);
+
+  // Reset PDFs
+  fPDF->Reset();
+  fPDFc->Reset();
+  // Compute PDFs at (x,Q2)
+  fPDF->Calculate(x, Q2pdf);
+
+  bool above_charm = utils::kinematics::IsAboveCharmThreshold(x, Q2val, M, fMc);
+  if(above_charm) {
+    // compute the slow rescaling var
+    double xc = utils::kinematics::SlowRescalingVar(x, Q2val, M, fMc);
+    if(xc<0 || xc>1) {
+      std::cerr << "Unphysical slow rescaling var: xc = " << xc;
+      return 1;
+    
+    } else {
+      // compute PDFs at (xc,Q2)
+      fPDFc->Calculate(xc, Q2pdf);
+    }
+  }
+  // Compute the K factors
+  double kval_u = 1.;
+  double kval_d = 1.;
+  double ksea_u = 1.;
+  double ksea_d = 1.;
+
+  KFactors(Q2val, kval_u, kval_d, ksea_u, ksea_d);
+
+  // Apply the K factors
+  //
+  // Always scale d pdfs with d kfactors and u pdfs with u kfactors.
+  // Don't swap the applied kfactors for neutrons.
+  // Debdatta & Donna noted (Sep.2006) that a similar swap in the neugen
+  // implementation was the cause of the difference in nu and nubar F2
+  //
+  fPDF->ScaleUpValence   (kval_u);
+  fPDF->ScaleDownValence (kval_d);
+  fPDF->ScaleUpSea       (ksea_u);
+  fPDF->ScaleDownSea     (ksea_d);
+  fPDF->ScaleStrange     (ksea_d);
+  fPDF->ScaleCharm       (ksea_u);
+  if(above_charm) {
+    fPDFc->ScaleUpValence   (kval_u);
+    fPDFc->ScaleDownValence (kval_d);
+    fPDFc->ScaleUpSea       (ksea_u);
+    fPDFc->ScaleDownSea     (ksea_d);
+    fPDFc->ScaleStrange     (ksea_d);
+    fPDFc->ScaleCharm       (ksea_u);
+  }
+
+  // Rules of thumb
+  // ---------------------------------------
+  // - For W+ exchange use: -1/3|e| quarks and -2/3|e| antiquarks
+  // - For W- exchange use:  2/3|e| quarks and  1/3|e| antiquarks
+  // - For each qi -> qj transition multiply with the (ij CKM element)^2
+  // - Use isospin symmetry to get neutron's u,d from proton's u,d
+  //    -- neutron d = proton u
+  //    -- neutron u = proton d
+  // - Use u = usea + uvalence. Same for d
+  // - For s,c use q=qbar
+  // - For t,b use q=qbar=0
+  double fuv =  fPDF  -> UpValence();
+  double fus   = fPDF  -> UpSea();
+  double fdv   = fPDF  -> DownValence();
+  double fds   = fPDF  -> DownSea();
+  double fs    = fPDF  -> Strange();
+  double fc    = 0.;
+  std::cout << "fuv: " << fuv << " fus: " << fus << " fdv: " << fdv << " fds: " << fds << " fs: " << fs << " fc: " << fc << std::endl;
+  
+  // will be 0 if < charm threshold
+  double fuv_c = fPDFc -> UpValence();   
+  double fus_c = fPDFc -> UpSea();
+  double fdv_c = fPDFc -> DownValence();
+  double fds_c = fPDFc -> DownSea();    
+  double fs_c  = fPDFc -> Strange();    
+  double fc_c  = fPDFc -> Charm();      
+  std::cout << "fuv_c: " << fuv_c << " fus_c: " << fus_c << " fdv_c: " << fdv_c << " fds_c: " << fds_c << " fs_c: " << fs_c << " fc_c: " << fc_c << std::endl;
+
+  // The above are the proton parton density function. Get the PDFs for the
+  // hit nucleon (p or n) by swapping u<->d if necessary
+  bool isP = pdg::IsProton  (nuc_pdgc);
+  bool isN = pdg::IsNeutron (nuc_pdgc);
+  assert(isP || isN);
+
+  double tmp = 0;
+  if (isN) {  // swap u <-> d
+    tmp = fuv;   fuv   = fdv;   fdv   = tmp;
+    tmp = fus;   fus   = fds;   fds   = tmp;
+    tmp = fuv_c; fuv_c = fdv_c; fdv_c = tmp;
+    tmp = fus_c; fus_c = fds_c; fds_c = tmp;
+  }
+
+  delete fPDF;
+  delete pdf_model;
+
+  return {fuv, fus, fdv, fds, fs, fc, fuv_c, fus_c, fdv_c, fds_c, fs_c, fc_c};
+}
+
+
+std::vector<double> structureFunctions(std::vector<double> pdf_values, double Q2val, double x, double bjx, int A) {
+  double fuv   = pdf_values[0];
+  double fus   = pdf_values[1];
+  double fdv   = pdf_values[2];
+  double fds   = pdf_values[3];
+  double fs    = pdf_values[4];
+  double fc    = pdf_values[5];
+  double fuv_c = pdf_values[6];
+  double fus_c = pdf_values[7];
+  double fdv_c = pdf_values[8];
+  double fds_c = pdf_values[9];
+  double fs_c  = pdf_values[10];
+  double fc_c  = pdf_values[11];
+  
+  // Compute the structure functions
+  double fF1 = 0;
+  double fF2 = 0;
+  double fF3 = 0;
+  double fF4 = 0;
+  double fF5 = 0;
+  double fF6 = 0;
+
+  double switch_uv    = 1.;
+  double switch_us    = 1.;
+  double switch_ubar  = 1.;
+  double switch_dv    = 1.;
+  double switch_ds    = 1.;
+  double switch_dbar  = 1.;
+  double switch_s     = 1.;
+  double switch_sbar  = 1.;
+  double switch_c     = 1.;
+  double switch_cbar  = 1.;
+
+  // TODO read this from the file (file name, separate input parameter, line or something else) later
+  bool is_nu       = true;
+  bool is_nubar    = false;
+
+  double F2val=0, xF3val=0;
+
+  double q=0, qbar=0;
+
+  if (is_nu) {
+    q    = ( switch_dv * fdv   + switch_ds * fds   ) * fVud2 +
+            ( switch_s  * fs                        ) * fVus2 +
+            ( switch_dv * fdv_c + switch_ds * fds_c ) * fVcd2 +
+            ( switch_s  * fs_c                      ) * fVcs2;
+
+    qbar = ( switch_ubar * fus  ) * fVud2 +
+            ( switch_ubar * fus  ) * fVus2 +
+            ( switch_cbar * fc_c ) * fVcd2 +
+            ( switch_cbar * fc_c ) * fVcs2;
+  }
+  else
+  if (is_nubar) {
+    q    = ( switch_uv * fuv + switch_us * fus    ) * fVud2 +
+            ( switch_uv * fuv + switch_us * fus    ) * fVus2 +
+            ( switch_c  * fc_c                     ) * fVcd2 +
+            ( switch_c  * fc_c                     ) * fVcs2;
+
+    qbar = ( switch_dbar * fds_c ) * fVcd2 +
+            ( switch_dbar * fds   ) * fVud2 +
+            ( switch_sbar * fs    ) * fVus2 +
+            ( switch_sbar * fs_c  ) * fVcs2;
+  }
+  else {
+    std::cerr << "ERROR: both is_nu and is_nubar are false" << std::endl;
+    return 1;
+  }
+
+  F2val  = 2*(q+qbar);
+  xF3val = 2*(q-qbar);
+
+  // Nuclear modification coefficient. Note that the regular Björken x is used here
+  double f = NuclMod(fIncludeNuclMod, bjx, A);
+  
+  // R ~ FL
+  double r = R(fIncludeR, bjx, Q2val); 
+
+
+  if(fUse2016Corrections) {
+    //It was confirmed by A.Bodek that the modified scaling variable
+    //should just be used to compute the strucure functions F2 and xF3,
+    //but that the usual Bjorken x should be used for the relations
+    //between the structure functions.
+    //For the same reason remove the freezing of Q2 at 0.8 for those relations,
+    //although it has not been explicitly asked to A.Bodek if it should be done.
+
+    double a = TMath::Power(bjx,2.) / TMath::Max(Q2val, fLowQ2CutoffF1F2);
+    // kNucleonMass2 is a constant from GENIE
+    double c = (1. + 4. * kNucleonMass2 * a) / (1.+r);
+
+    fF3 = f * xF3val/bjx;
+    fF2 = f * F2val;
+    fF1 = fF2 * 0.5*c/bjx;
+    fF5 = fF2/bjx;           // Albright-Jarlskog relation
+    fF4 = 0.;                // Nucl.Phys.B 84, 467 (1975)
+  }
+  else {
+    double a = TMath::Power(x,2.) / TMath::Max(Q2val, fLowQ2CutoffF1F2);
+    double c = (1. + 4. * kNucleonMass2 * a) / (1.+r);
+
+    fF3 = f * xF3val / x;
+    fF2 = f * F2val;
+    fF1 = fF2 * 0.5 * c / x;
+    fF5 = fF2 / x;         // Albright-Jarlskog relation
+    fF4 = 0.;              // Nucl.Phys.B 84, 467 (1975)
+  }
+
+  return {fF1, fF2, fF3, fF4, fF5};
+}
+
+double ScalingVar(double x, double Q2, const double fA, const double fB) {
+// The modified Björken x that is used for BY
+  double a  = TMath::Power( 2*kProtonMass*x, 2 ) / Q2;
+  double xw =  2*x*(Q2+fB) / (Q2*(1.+TMath::Sqrt(1+a)) +  2*fA*x);
+  return xw;
+}
+
+
+double NuclMod(const bool fIncludeNuclMod, double x, int A) const
+{
+// Nuclear modification to Fi
+
+  double f = 1.;
+  
+  if(fIncludeNuclMod) {
+    //   The x used for computing the DIS Nuclear correction factor should be the
+    //   experimental x, not the rescaled x or off-shell-rest-frame version of x
+    //   (i.e. selected x).  Since we do not have access to experimental x at this
+    //   point in the calculation, just use selected x.
+    f = utils::nuclear::DISNuclFactor(x, A);
+  }
+
+  return f;
+}
+
+
+double R(const bool fIncludeR, double x, double Q2) {
+// Computes R ( ~ longitudinal structure function FL = R * 2xF1)
+// The scaling variable can be overwritten to include corrections
+//   The x used for computing the DIS Nuclear correction factor should be the
+//   experimental x, not the rescaled x or off-shell-rest-frame version of x
+//   (i.e. selected x).  Since we do not have access to experimental x at this
+//   point in the calculation, just use selected x.
+  if(fIncludeR) {
+    double Rval = utils::phys::RWhitlow(x, Q2);
+    return Rval;
+  }
+  return 0;
+}
+
+
+void KFactors(double Q2, const double fCv2U, const double fCv1U, const double fCv2D, const double fCv1D,
+  const double fCsU, const double fCsD,
+  double & kuv, double & kdv, double & kus, double & kds) {
+// Compute the BY K factors for u(valence), d(valence), u(sea), d(sea)
+// Note: it sets the values in-place
+
+  double GD  = 1. / TMath::Power(1.+Q2/0.71, 2); // p elastic form factor
+  double GD2 = TMath::Power(GD,2);
+
+  kuv = (1.-GD2)*(Q2+fCv2U)/(Q2+fCv1U); // K - u(valence)
+  kdv = (1.-GD2)*(Q2+fCv2D)/(Q2+fCv1D); // K - d(valence)
+  kus = Q2/(Q2+fCsU);                   // K - u(sea)
+  kds = Q2/(Q2+fCsD);                   // K - d(sea)
+}
+
+
+// The functions below (until a new similar comment) are from https://github.com/GENIE-MC/Generator/blob/master/src/Physics/DeepInelastic/XSection/QPMDISStrucFuncBase.cxx
 void QPMDISStrucFuncBase::Calculate(const Interaction * interaction) const
 {
   // Reset mutable members
@@ -132,66 +454,65 @@ void QPMDISStrucFuncBase::Calculate(const Interaction * interaction) const
 
   // Flags switching on/off quark contributions so that this algorithm can be
   // used for both l + N -> l' + X, and l + q -> l' + q' level calculations
-  
-  // TODO maybe use this for my own calculations, if quark level interactions are happening. For now, ignore.
-//   double switch_uv    = 1.;
-//   double switch_us    = 1.;
-//   double switch_ubar  = 1.;
-//   double switch_dv    = 1.;
-//   double switch_ds    = 1.;
-//   double switch_dbar  = 1.;
-//   double switch_s     = 1.;
-//   double switch_sbar  = 1.;
-//   double switch_c     = 1.;
-//   double switch_cbar  = 1.;
 
-//   if(tgt.HitQrkIsSet()) {
+  double switch_uv    = 1.;
+  double switch_us    = 1.;
+  double switch_ubar  = 1.;
+  double switch_dv    = 1.;
+  double switch_ds    = 1.;
+  double switch_dbar  = 1.;
+  double switch_s     = 1.;
+  double switch_sbar  = 1.;
+  double switch_c     = 1.;
+  double switch_cbar  = 1.;
 
-//      switch_uv    = 0.;
-//      switch_us    = 0.;
-//      switch_ubar  = 0.;
-//      switch_dv    = 0.;
-//      switch_ds    = 0.;
-//      switch_dbar  = 0.;
-//      switch_s     = 0.;
-//      switch_sbar  = 0.;
-//      switch_c     = 0.;
-//      switch_cbar  = 0.;
+  if(tgt.HitQrkIsSet()) {
 
-//      int  qpdg = tgt.HitQrkPdg();
-//      bool sea  = tgt.HitSeaQrk();
+     switch_uv    = 0.;
+     switch_us    = 0.;
+     switch_ubar  = 0.;
+     switch_dv    = 0.;
+     switch_ds    = 0.;
+     switch_dbar  = 0.;
+     switch_s     = 0.;
+     switch_sbar  = 0.;
+     switch_c     = 0.;
+     switch_cbar  = 0.;
 
-//      bool is_u    = pdg::IsUQuark     (qpdg);
-//      bool is_ubar = pdg::IsAntiUQuark (qpdg);
-//      bool is_d    = pdg::IsDQuark     (qpdg);
-//      bool is_dbar = pdg::IsAntiDQuark (qpdg);
-//      bool is_s    = pdg::IsSQuark     (qpdg);
-//      bool is_sbar = pdg::IsAntiSQuark (qpdg);
-//      bool is_c    = pdg::IsCQuark     (qpdg);
-//      bool is_cbar = pdg::IsAntiCQuark (qpdg);
+     int  qpdg = tgt.HitQrkPdg();
+     bool sea  = tgt.HitSeaQrk();
 
-//      if      (!sea && is_u   ) { switch_uv   = 1; }
-//      else if ( sea && is_u   ) { switch_us   = 1; }
-//      else if ( sea && is_ubar) { switch_ubar = 1; }
-//      else if (!sea && is_d   ) { switch_dv   = 1; }
-//      else if ( sea && is_d   ) { switch_ds   = 1; }
-//      else if ( sea && is_dbar) { switch_dbar = 1; }
-//      else if ( sea && is_s   ) { switch_s    = 1; }
-//      else if ( sea && is_sbar) { switch_sbar = 1; }
-//      else if ( sea && is_c   ) { switch_c    = 1; }
-//      else if ( sea && is_cbar) { switch_cbar = 1; }
-//      else return;
+     bool is_u    = pdg::IsUQuark     (qpdg);
+     bool is_ubar = pdg::IsAntiUQuark (qpdg);
+     bool is_d    = pdg::IsDQuark     (qpdg);
+     bool is_dbar = pdg::IsAntiDQuark (qpdg);
+     bool is_s    = pdg::IsSQuark     (qpdg);
+     bool is_sbar = pdg::IsAntiSQuark (qpdg);
+     bool is_c    = pdg::IsCQuark     (qpdg);
+     bool is_cbar = pdg::IsAntiCQuark (qpdg);
 
-//      // make sure user inputs make sense
-//     if(is_nu    && is_CC && is_u   ) return;
-//     if(is_nu    && is_CC && is_c   ) return;
-//     if(is_nu    && is_CC && is_dbar) return;
-//     if(is_nu    && is_CC && is_sbar) return;
-//     if(is_nubar && is_CC && is_ubar) return;
-//     if(is_nubar && is_CC && is_cbar) return;
-//     if(is_nubar && is_CC && is_d   ) return;
-//     if(is_nubar && is_CC && is_s   ) return;
-//   }
+     if      (!sea && is_u   ) { switch_uv   = 1; }
+     else if ( sea && is_u   ) { switch_us   = 1; }
+     else if ( sea && is_ubar) { switch_ubar = 1; }
+     else if (!sea && is_d   ) { switch_dv   = 1; }
+     else if ( sea && is_d   ) { switch_ds   = 1; }
+     else if ( sea && is_dbar) { switch_dbar = 1; }
+     else if ( sea && is_s   ) { switch_s    = 1; }
+     else if ( sea && is_sbar) { switch_sbar = 1; }
+     else if ( sea && is_c   ) { switch_c    = 1; }
+     else if ( sea && is_cbar) { switch_cbar = 1; }
+     else return;
+
+     // make sure user inputs make sense
+    if(is_nu    && is_CC && is_u   ) return;
+    if(is_nu    && is_CC && is_c   ) return;
+    if(is_nu    && is_CC && is_dbar) return;
+    if(is_nu    && is_CC && is_sbar) return;
+    if(is_nubar && is_CC && is_ubar) return;
+    if(is_nubar && is_CC && is_cbar) return;
+    if(is_nubar && is_CC && is_d   ) return;
+    if(is_nubar && is_CC && is_s   ) return;
+  }
 
   // Compute PDFs [both at (scaling-var,Q2) and (slow-rescaling-var,Q2)
   // Applying all PDF K-factors abd scaling variable corrections
@@ -203,15 +524,14 @@ void QPMDISStrucFuncBase::Calculate(const Interaction * interaction) const
   //
 
   double F2val=0, xF3val=0;
-  
-  // NOTE for me, only CC is relevant
+
   // ***  CHARGED CURRENT
 
   if(is_CC) {
     double q=0, qbar=0;
 
     if (is_nu) {
-      q    = ( switch_dv * fdv   + switch_ds * fds   ) * fVud2 + // CKM mixing matrix value ^2
+      q    = ( switch_dv * fdv   + switch_ds * fds   ) * fVud2 +
              ( switch_s  * fs                        ) * fVus2 +
              ( switch_dv * fdv_c + switch_ds * fds_c ) * fVcd2 +
              ( switch_s  * fs_c                      ) * fVcs2;
@@ -243,46 +563,55 @@ void QPMDISStrucFuncBase::Calculate(const Interaction * interaction) const
 
   double Q2val = this->Q2        (interaction);
   double x     = this->ScalingVar(interaction);
+  double f     = this->NuclMod   (interaction); // nuclear modification
+  double r     = this->R         (interaction); // R ~ FL
 
-  double f = 1.;
+#ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
+  LOG("DISSF", pDEBUG) << "Nucl. mod   = " << f;
+  LOG("DISSF", pDEBUG) << "R(=FL/2xF1) = " << r;
+#endif
 
-  if (fIncludeNuclMod) {
-    int A = 18; // Oxygen. 
-    // TODO change this to be a parameter read from a file
-    f = utils::nuclear::DISNuclFactor(x,A);
+  if(fUse2016Corrections) {
+    //It was confirmed by A.Bodek that the modified scaling variable
+    //should just be used to compute the strucure functions F2 and xF3,
+    //but that the usual Bjorken x should be used for the relations
+    //between the structure functions.
+    //For the same reason remove the freezing of Q2 at 0.8 for those relations,
+    //although it has not been explicitly asked to A.Bodek if it should be done.
+
+    const Kinematics & kinematics = interaction->Kine();
+    double bjx = kinematics.x();
+
+    double a = TMath::Power(bjx,2.) / TMath::Max(Q2val, fLowQ2CutoffF1F2);
+    double c = (1. + 4. * kNucleonMass2 * a) / (1.+r);
+
+    fF3 = f * xF3val/bjx;
+    fF2 = f * F2val;
+    fF1 = fF2 * 0.5*c/bjx;
+    fF5 = fF2/bjx;           // Albright-Jarlskog relation
+    fF4 = 0.;                // Nucl.Phys.B 84, 467 (1975)
+  }
+  else {
+    double a = TMath::Power(x,2.) / TMath::Max(Q2val, fLowQ2CutoffF1F2);
+    double c = (1. + 4. * kNucleonMass2 * a) / (1.+r);
+    //double a = TMath::Power(x,2.) / Q2val;
+    //double c = (1. + 4. * kNucleonMass * a) / (1.+r);
+
+    fF3 = f * xF3val / x;
+    fF2 = f * F2val;
+    fF1 = fF2 * 0.5 * c / x;
+    fF5 = fF2 / x;         // Albright-Jarlskog relation
+    fF4 = 0.;              // Nucl.Phys.B 84, 467 (1975)
   }
 
-  // longitudinal structure function FL = R * 2xF1
-  double r = 0;
-  if (fIncludeR) {
-     double r = utils::phys::RWhitlow(x, Q2val);
-  }
-
-
-  //It was confirmed by A.Bodek that the modified scaling variable
-  //should just be used to compute the strucure functions F2 and xF3,
-  //but that the usual Bjorken x should be used for the relations
-  //between the structure functions.
-  //For the same reason remove the freezing of Q2 at 0.8 for those relations,
-  //although it has not been explicitly asked to A.Bodek if it should be done.
-  
-//   const Kinematics & kinematics = interaction->Kine();
-//   double bjx = kinematics.x();
-  
-  double bjx = x;
-  double a = TMath::Power(bjx,2.) / TMath::Max(Q2, 0.8);
-  // I am guessing that kNucleonMass2 comes from Constants.h
-  double c = (1. + 4. * kNucleonMass2 * a) / (1.+r);
-  
-  fF3 = f * xF3val/bjx;
-  fF2 = f * F2val;
-  fF1 = fF2 * 0.5*c/bjx;
-  fF5 = fF2/bjx;           // Albright-Jarlskog relation
-  fF4 = 0.;                // Nucl.Phys.B 84, 467 (1975)
+#ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
+  LOG("DISSF", pDEBUG)
+     << "F1-F5 = "
+     << fF1 << ", " << fF2 << ", " << fF3 << ", " << fF4 << ", " << fF5;
+#endif
 }
 
-
-// NOTE check how large these corrections are for my purposes
+//____________________________________________________________________________
 double QPMDISStrucFuncBase::NuclMod(const Interaction * interaction) const
 {
 // Nuclear modification to Fi
@@ -303,12 +632,168 @@ double QPMDISStrucFuncBase::NuclMod(const Interaction * interaction) const
      double x  = kine.x();
      int    A = tgt.A();
      f = utils::nuclear::DISNuclFactor(x,A);
+#ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
+     LOG("DISSF", pDEBUG) << "Nuclear factor for x of " << x << "  = " << f;
+#endif
   }
 
   return f;
 }
 
+//____________________________________________________________________________
+double QPMDISStrucFuncBase::R(const Interaction * interaction) const
+{
+// Computes R ( ~ longitudinal structure function FL = R * 2xF1)
+// The scaling variable can be overwritten to include corrections
 
+//   The x used for computing the DIS Nuclear correction factor should be the
+//   experimental x, not the rescaled x or off-shell-rest-frame version of x
+//   (i.e. selected x).  Since we do not have access to experimental x at this
+//   point in the calculation, just use selected x.
+  if(fIncludeR) {
+    const Kinematics & kine  = interaction->Kine();
+    double x  = kine.x();
+//    double x  = this->ScalingVar(interaction);
+    double Q2val = this->Q2(interaction);
+    double Rval  = utils::phys::RWhitlow(x, Q2val);
+    return Rval;
+  }
+  return 0;
+}
+
+void QPMDISStrucFuncBase::CalcPDFs(const Interaction * interaction) const
+{
+  // Clean-up previous calculation
+  fPDF  -> Reset();
+  fPDFc -> Reset();
+
+  // Get the kinematical variables x,Q2 (could include corrections)
+  double x     = this->ScalingVar(interaction);
+  double Q2val = this->Q2(interaction);
+
+  // Get the hit nucleon mass (could be off-shell)
+  const Target & tgt = interaction->InitState().Tgt();
+  double M = tgt.HitNucP4().M();
+
+  // Get the Q2 for which PDFs will be evaluated
+  double Q2pdf = TMath::Max(Q2val, fQ2min);
+
+  // Compute PDFs at (x,Q2)
+#ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
+  LOG("DISSF", pDEBUG) << "Calculating PDFs @ x = " << x << ", Q2 = " << Q2pdf;
+#endif
+  fPDF->Calculate(x, Q2pdf);
+
+  // Check whether it is above charm threshold
+  bool above_charm =
+           utils::kinematics::IsAboveCharmThreshold(x, Q2val, M, fMc);
+  if(above_charm) {
+#ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
+    LOG("DISSF", pDEBUG)
+      << "The event is above the charm threshold (mcharm = " << fMc << ")";
+#endif
+    if(fCharmOff) {
+       LOG("DISSF", pINFO) << "Charm production is turned off";
+    } else {
+       // compute the slow rescaling var
+       double xc = utils::kinematics::SlowRescalingVar(x, Q2val, M, fMc);
+       if(xc<0 || xc>1) {
+          LOG("DISSF", pINFO) << "Unphys. slow rescaling var: xc = " << xc;
+       } else {
+          // compute PDFs at (xc,Q2)
+#ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
+          LOG("DISSF", pDEBUG)
+              << "Calculating PDFs @ xc (slow rescaling) = " << x << ", Q2 = " << Q2val;
+#endif
+          fPDFc->Calculate(xc, Q2pdf);
+       }
+    }// charm off?
+  }//above charm thr?
+  else {
+    LOG("DISSF", pDEBUG)
+     << "The event is below the charm threshold (mcharm = " << fMc << ")";
+  }
+
+  // Compute the K factors
+  double kval_u = 1.;
+  double kval_d = 1.;
+  double ksea_u = 1.;
+  double ksea_d = 1.;
+
+  this->KFactors(interaction, kval_u, kval_d, ksea_u, ksea_d);
+
+#ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
+  LOG("DISSF", pDEBUG) << "K-Factors:";
+  LOG("DISSF", pDEBUG) << "U: Kval = " << kval_u << ", Ksea = " << ksea_u;
+  LOG("DISSF", pDEBUG) << "D: Kval = " << kval_d << ", Ksea = " << ksea_d;
+#endif
+
+  // Apply the K factors
+  //
+  // Always scale d pdfs with d kfactors and u pdfs with u kfactors.
+  // Don't swap the applied kfactors for neutrons.
+  // Debdatta & Donna noted (Sep.2006) that a similar swap in the neugen
+  // implementation was the cause of the difference in nu and nubar F2
+  //
+  fPDF->ScaleUpValence   (kval_u);
+  fPDF->ScaleDownValence (kval_d);
+  fPDF->ScaleUpSea       (ksea_u);
+  fPDF->ScaleDownSea     (ksea_d);
+  fPDF->ScaleStrange     (ksea_d);
+  fPDF->ScaleCharm       (ksea_u);
+  if(above_charm) {
+     fPDFc->ScaleUpValence   (kval_u);
+     fPDFc->ScaleDownValence (kval_d);
+     fPDFc->ScaleUpSea       (ksea_u);
+     fPDFc->ScaleDownSea     (ksea_d);
+     fPDFc->ScaleStrange     (ksea_d);
+     fPDFc->ScaleCharm       (ksea_u);
+  }
+
+  // Rules of thumb
+  // ---------------------------------------
+  // - For W+ exchange use: -1/3|e| quarks and -2/3|e| antiquarks
+  // - For W- exchange use:  2/3|e| quarks and  1/3|e| antiquarks
+  // - For each qi -> qj transition multiply with the (ij CKM element)^2
+  // - Use isospin symmetry to get neutron's u,d from proton's u,d
+  //    -- neutron d = proton u
+  //    -- neutron u = proton d
+  // - Use u = usea + uvalence. Same for d
+  // - For s,c use q=qbar
+  // - For t,b use q=qbar=0
+
+  fuv   = fPDF  -> UpValence();
+  fus   = fPDF  -> UpSea();
+  fdv   = fPDF  -> DownValence();
+  fds   = fPDF  -> DownSea();
+  fs    = fPDF  -> Strange();
+  fc    = 0.;
+  fuv_c = fPDFc -> UpValence();   // will be 0 if < charm threshold
+  fus_c = fPDFc -> UpSea();       // ...
+  fdv_c = fPDFc -> DownValence(); // ...
+  fds_c = fPDFc -> DownSea();     // ...
+  fs_c  = fPDFc -> Strange();     // ...
+  fc_c  = fPDFc -> Charm();       // ...
+
+  // The above are the proton parton density function. Get the PDFs for the
+  // hit nucleon (p or n) by swapping u<->d if necessary
+
+  int nuc_pdgc = tgt.HitNucPdg();
+  bool isP = pdg::IsProton  (nuc_pdgc);
+  bool isN = pdg::IsNeutron (nuc_pdgc);
+  assert(isP  || isN);
+
+  double tmp = 0;
+  if (isN) {  // swap u <-> d
+    tmp = fuv;   fuv   = fdv;   fdv   = tmp;
+    tmp = fus;   fus   = fds;   fds   = tmp;
+    tmp = fuv_c; fuv_c = fdv_c; fdv_c = tmp;
+    tmp = fus_c; fus_c = fds_c; fds_c = tmp;
+  }
+
+}
+
+// The 2 functions below are from https://github.com/GENIE-MC/Generator/blob/master/src/Physics/DeepInelastic/XSection/BYStrucFunc.cxx
 double BYStrucFunc::ScalingVar(const Interaction * interaction) const
 {
 // Overrides QPMDISStrucFuncBase::ScalingVar() to compute the BY scaling var
