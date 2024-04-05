@@ -341,7 +341,7 @@ int analytic_tau_pol_dis(std::string input_file, std::string output_file) {
   // Identify the index where the value is "x" and "Q2"
   while (std::getline(s, word, ',')) {
     std::cout << word << std::endl;
-    if (word == "xs") {
+    if (word == "x") {
         xcol = index;
     } else if (word == "Q2s") {
         Q2col = index;
