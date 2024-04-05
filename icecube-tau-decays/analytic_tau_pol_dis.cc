@@ -106,14 +106,15 @@ void KFactors(double Q2, double & kuv, double & kdv, double & kus, double & kds)
 
 
 std::vector<double> CalculatePDFs(double x, double Q2val, double M, int nuc_pdgc, PDF* fPDF, PDF* fPDFc) {
-  double Q2pdf =  TMath::Max(Q2val, fQ2min);
-  // Reset PDFs
+  // Clean-up previous calculation
   fPDF->Reset();
   fPDFc->Reset();
+  double Q2pdf = TMath::Max(Q2val, fQ2min);
   // Compute PDFs at (x,Q2)
   fPDF->Calculate(x, Q2pdf);
 
-  bool above_charm = utils::kinematics::IsAboveCharmThreshold(x, Q2val, M, fMc);
+  bool above_charm =
+      utils::kinematics::IsAboveCharmThreshold(x, Q2val, M, fMc);
   if(above_charm) {
     // compute the slow rescaling var
     double xc = utils::kinematics::SlowRescalingVar(x, Q2val, M, fMc);
@@ -168,7 +169,7 @@ std::vector<double> CalculatePDFs(double x, double Q2val, double M, int nuc_pdgc
   // - For s,c use q=qbar
   // - For t,b use q=qbar=0
 
-  double fuv =  fPDF  -> UpValence();
+  double fuv   = fPDF  -> UpValence();
   double fus   = fPDF  -> UpSea();
   double fdv   = fPDF  -> DownValence();
   double fds   = fPDF  -> DownSea();
@@ -206,7 +207,16 @@ std::vector<double> CalculatePDFs(double x, double Q2val, double M, int nuc_pdgc
 }
 
 
-std::vector<double> structureFunctions(std::vector<double> pdf_values, double Q2val, double x, double bjx, int A) {
+std::vector<double> structureFunctions(std::vector<double> pdf_values, double Q2val, double x, double bjx, int A, int hitqrk, bool sea) 
+{
+  // Compute the structure functions
+  double fF1 = 0;
+  double fF2 = 0;
+  double fF3 = 0;
+  double fF4 = 0;
+  double fF5 = 0;
+  double fF6 = 0;
+  
   double fuv   = pdf_values[0];
   double fus   = pdf_values[1];
   double fdv   = pdf_values[2];
@@ -219,14 +229,6 @@ std::vector<double> structureFunctions(std::vector<double> pdf_values, double Q2
   double fds_c = pdf_values[9];
   double fs_c  = pdf_values[10];
   double fc_c  = pdf_values[11];
-  
-  // Compute the structure functions
-  double fF1 = 0;
-  double fF2 = 0;
-  double fF3 = 0;
-  double fF4 = 0;
-  double fF5 = 0;
-  double fF6 = 0;
 
   double switch_uv    = 1.;
   double switch_us    = 1.;
@@ -242,7 +244,52 @@ std::vector<double> structureFunctions(std::vector<double> pdf_values, double Q2
   // TODO read this from the file (file name, separate input parameter, line or something else) later
   bool is_nu       = true;
   bool is_nubar    = false;
+  
+  if(hitqrk != 0) {
+    switch_uv    = 0.;
+    switch_us    = 0.;
+    switch_ubar  = 0.;
+    switch_dv    = 0.;
+    switch_ds    = 0.;
+    switch_dbar  = 0.;
+    switch_s     = 0.;
+    switch_sbar  = 0.;
+    switch_c     = 0.;
+    switch_cbar  = 0.;
 
+    int  qpdg = hitqrk;
+
+    bool is_u    = pdg::IsUQuark     (qpdg);
+    bool is_ubar = pdg::IsAntiUQuark (qpdg);
+    bool is_d    = pdg::IsDQuark     (qpdg);
+    bool is_dbar = pdg::IsAntiDQuark (qpdg);
+    bool is_s    = pdg::IsSQuark     (qpdg);
+    bool is_sbar = pdg::IsAntiSQuark (qpdg);
+    bool is_c    = pdg::IsCQuark     (qpdg);
+    bool is_cbar = pdg::IsAntiCQuark (qpdg);
+
+    if      (!sea && is_u   ) { switch_uv   = 1; }
+    else if ( sea && is_u   ) { switch_us   = 1; }
+    else if ( sea && is_ubar) { switch_ubar = 1; }
+    else if (!sea && is_d   ) { switch_dv   = 1; }
+    else if ( sea && is_d   ) { switch_ds   = 1; }
+    else if ( sea && is_dbar) { switch_dbar = 1; }
+    else if ( sea && is_s   ) { switch_s    = 1; }
+    else if ( sea && is_sbar) { switch_sbar = 1; }
+    else if ( sea && is_c   ) { switch_c    = 1; }
+    else if ( sea && is_cbar) { switch_cbar = 1; }
+    else throw std::invalid_argument("Unknown quark type");
+
+     // make sure user inputs make sense
+    if(is_nu    && is_u   ) throw std::invalid_argument("is_nu && is_u");
+    if(is_nu    && is_c   ) throw std::invalid_argument("is_nu && is_c");
+    if(is_nu    && is_dbar) throw std::invalid_argument("is_nu && is_dbar");
+    if(is_nu    && is_sbar) throw std::invalid_argument("is_nu && is_sbar");
+    if(is_nubar && is_ubar) throw std::invalid_argument("is_nubar && is_ubar");
+    if(is_nubar && is_cbar) throw std::invalid_argument("is_nubar && is_cbar");
+    if(is_nubar && is_d   ) throw std::invalid_argument("is_nubar && is_d");
+    if(is_nubar && is_s   ) throw std::invalid_argument("is_nubar && is_s");
+  }
   double F2val=0, xF3val=0;
 
   double q=0, qbar=0;
@@ -336,7 +383,7 @@ int analytic_tau_pol_dis(std::string input_file, std::string output_file) {
   std::stringstream s(line);
   int index = 0;
 
-  int xcol, Q2col, nuc_pdgcol, discol, Acol, Mcol;
+  int xcol, Q2col, nuc_pdgcol, discol, Acol, Mcol, hitqrkcol, seacol;
 
   // Identify the index where the value is "x" and "Q2"
   while (std::getline(s, word, ',')) {
@@ -353,21 +400,27 @@ int analytic_tau_pol_dis(std::string input_file, std::string output_file) {
         Acol = index;
     } else if (word == "Mnuc") {
         Mcol = index;
+    } else if (word == "hitqrk") {
+        hitqrkcol = index;
+    } else if (word == "sea") {
+        seacol = index;
     }
     index++;
   }
 
   std::cout << "xcol: " << xcol << ", Q2col: " << Q2col 
     << ", nuc_pdgcol: " << nuc_pdgcol << ", discol: " << discol 
-    << ", Acol" << Acol << ", Mcol: " << Mcol << std::endl;
+    << ", Acol" << Acol << ", Mcol: " << Mcol << ", hitqrkcol: " << hitqrkcol
+    << ", seacol: " << seacol
+    << std::endl;
 
   // Open output file and write header to it
   std::ofstream ofile(output_file);
   ofile << line << ",F1,F2,F3,F4,F5" << std::endl;
   
   double x, Q2val, M;
-  int nuc_pdgc, A;
-  bool dis;
+  int nuc_pdgc, A, hitqrk;
+  bool dis, sea;
   // Read the rest of the lines and compute the PDF at each (x, Q2)
   while (std::getline(file, line)) {
     std::stringstream s(line);
@@ -386,6 +439,10 @@ int analytic_tau_pol_dis(std::string input_file, std::string output_file) {
           A = std::stoi(word);
       } else if (index == Mcol) {
           M = std::stod(word);
+      } else if (index == hitqrkcol) {
+          hitqrk = std::stoi(word);
+      } else if (index == seacol) {
+          sea = word == "True";
       }
       index++;
     }
@@ -405,7 +462,7 @@ int analytic_tau_pol_dis(std::string input_file, std::string output_file) {
     // Compute PDFs
     std::vector<double> pdf_values = CalculatePDFs(x, Q2val, M, nuc_pdgc, fPDF, fPDFc);
     // Compute structure functions
-    std::vector<double> Fs = structureFunctions(pdf_values, Q2val, x, bjx, A);
+    std::vector<double> Fs = structureFunctions(pdf_values, Q2val, x, bjx, A, hitqrk, sea);
     
     // Write to output file
     ofile << line << "," << Fs[0] << "," << Fs[1] << "," << Fs[2] << "," << Fs[3] << "," << Fs[4] << std::endl;

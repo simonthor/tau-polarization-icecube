@@ -1,5 +1,220 @@
 
 // The functions below (until a new similar comment) are from https://github.com/GENIE-MC/Generator/blob/master/src/Physics/DeepInelastic/XSection/QPMDISStrucFuncBase.cxx
+
+// The 2 functions below are from https://github.com/GENIE-MC/Generator/blob/master/src/Physics/DeepInelastic/XSection/BYStrucFunc.cxx
+double BYStrucFunc::ScalingVar(const Interaction * interaction) const
+{
+// Overrides QPMDISStrucFuncBase::ScalingVar() to compute the BY scaling var
+
+  const Kinematics & kine  = interaction->Kine();
+  double x  = kine.x();
+  double myQ2 = this->Q2(interaction);
+  //myQ2 = TMath::Max(Q2,fQ2min);
+  LOG("BodekYang", pDEBUG) << "Q2 at scaling var calculation = " << myQ2;
+
+  double a  = TMath::Power( 2*kProtonMass*x, 2 ) / myQ2;
+  double xw =  2*x*(myQ2+fB) / (myQ2*(1.+TMath::Sqrt(1+a)) +  2*fA*x);
+  return xw;
+}
+
+//____________________________________________________________________________
+double QPMDISStrucFuncBase::NuclMod(const Interaction * interaction) const
+{
+// Nuclear modification to Fi
+// The scaling variable can be overwritten to include corrections
+
+  if( interaction->TestBit(kIAssumeFreeNucleon)   ) return 1.0;
+  if( interaction->TestBit(kINoNuclearCorrection) ) return 1.0;
+
+  double f = 1.;
+  if(fIncludeNuclMod) {
+     const Target & tgt  = interaction->InitState().Tgt();
+
+//   The x used for computing the DIS Nuclear correction factor should be the
+//   experimental x, not the rescaled x or off-shell-rest-frame version of x
+//   (i.e. selected x).  Since we do not have access to experimental x at this
+//   point in the calculation, just use selected x.
+     const Kinematics & kine  = interaction->Kine();
+     double x  = kine.x();
+     int    A = tgt.A();
+     f = utils::nuclear::DISNuclFactor(x,A);
+#ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
+     LOG("DISSF", pDEBUG) << "Nuclear factor for x of " << x << "  = " << f;
+#endif
+  }
+
+  return f;
+}
+
+//____________________________________________________________________________
+double QPMDISStrucFuncBase::R(const Interaction * interaction) const
+{
+// Computes R ( ~ longitudinal structure function FL = R * 2xF1)
+// The scaling variable can be overwritten to include corrections
+
+//   The x used for computing the DIS Nuclear correction factor should be the
+//   experimental x, not the rescaled x or off-shell-rest-frame version of x
+//   (i.e. selected x).  Since we do not have access to experimental x at this
+//   point in the calculation, just use selected x.
+  if(fIncludeR) {
+    const Kinematics & kine  = interaction->Kine();
+    double x  = kine.x();
+//    double x  = this->ScalingVar(interaction);
+    double Q2val = this->Q2(interaction);
+    double Rval  = utils::phys::RWhitlow(x, Q2val);
+    return Rval;
+  }
+  return 0;
+}
+
+//____________________________________________________________________________
+void BYStrucFunc::KFactors(const Interaction * interaction,
+	         double & kuv, double & kdv, double & kus, double & kds) const
+{
+// Overrides QPMDISStrucFuncBase::KFactors() to compute the BY K factors for
+// u(valence), d(valence), u(sea), d(sea);
+
+  double myQ2  = this->Q2(interaction);
+  double GD  = 1. / TMath::Power(1.+myQ2/0.71, 2); // p elastic form factor
+  double GD2 = TMath::Power(GD,2);
+
+  kuv = (1.-GD2)*(myQ2+fCv2U)/(myQ2+fCv1U); // K - u(valence)
+  kdv = (1.-GD2)*(myQ2+fCv2D)/(myQ2+fCv1D); // K - d(valence)
+  kus = myQ2/(myQ2+fCsU);                   // K - u(sea)
+  kds = myQ2/(myQ2+fCsD);                   // K - d(sea)
+}
+void QPMDISStrucFuncBase::CalcPDFs(const Interaction * interaction) const
+{
+  // Clean-up previous calculation
+  fPDF  -> Reset();
+  fPDFc -> Reset();
+
+  // Get the kinematical variables x,Q2 (could include corrections)
+  double x     = this->ScalingVar(interaction);
+  double Q2val = this->Q2(interaction);
+
+  // Get the hit nucleon mass (could be off-shell)
+  const Target & tgt = interaction->InitState().Tgt();
+  double M = tgt.HitNucP4().M();
+
+  // Get the Q2 for which PDFs will be evaluated
+  double Q2pdf = TMath::Max(Q2val, fQ2min);
+
+  // Compute PDFs at (x,Q2)
+#ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
+  LOG("DISSF", pDEBUG) << "Calculating PDFs @ x = " << x << ", Q2 = " << Q2pdf;
+#endif
+  fPDF->Calculate(x, Q2pdf);
+
+  // Check whether it is above charm threshold
+  bool above_charm =
+           utils::kinematics::IsAboveCharmThreshold(x, Q2val, M, fMc);
+  if(above_charm) {
+#ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
+    LOG("DISSF", pDEBUG)
+      << "The event is above the charm threshold (mcharm = " << fMc << ")";
+#endif
+    if(fCharmOff) {
+       LOG("DISSF", pINFO) << "Charm production is turned off";
+    } else {
+       // compute the slow rescaling var
+       double xc = utils::kinematics::SlowRescalingVar(x, Q2val, M, fMc);
+       if(xc<0 || xc>1) {
+          LOG("DISSF", pINFO) << "Unphys. slow rescaling var: xc = " << xc;
+       } else {
+          // compute PDFs at (xc,Q2)
+#ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
+          LOG("DISSF", pDEBUG)
+              << "Calculating PDFs @ xc (slow rescaling) = " << x << ", Q2 = " << Q2val;
+#endif
+          fPDFc->Calculate(xc, Q2pdf);
+       }
+    }// charm off?
+  }//above charm thr?
+  else {
+    LOG("DISSF", pDEBUG)
+     << "The event is below the charm threshold (mcharm = " << fMc << ")";
+  }
+
+  // Compute the K factors
+  double kval_u = 1.;
+  double kval_d = 1.;
+  double ksea_u = 1.;
+  double ksea_d = 1.;
+
+  this->KFactors(interaction, kval_u, kval_d, ksea_u, ksea_d);
+
+#ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
+  LOG("DISSF", pDEBUG) << "K-Factors:";
+  LOG("DISSF", pDEBUG) << "U: Kval = " << kval_u << ", Ksea = " << ksea_u;
+  LOG("DISSF", pDEBUG) << "D: Kval = " << kval_d << ", Ksea = " << ksea_d;
+#endif
+
+  // Apply the K factors
+  //
+  // Always scale d pdfs with d kfactors and u pdfs with u kfactors.
+  // Don't swap the applied kfactors for neutrons.
+  // Debdatta & Donna noted (Sep.2006) that a similar swap in the neugen
+  // implementation was the cause of the difference in nu and nubar F2
+  //
+  fPDF->ScaleUpValence   (kval_u);
+  fPDF->ScaleDownValence (kval_d);
+  fPDF->ScaleUpSea       (ksea_u);
+  fPDF->ScaleDownSea     (ksea_d);
+  fPDF->ScaleStrange     (ksea_d);
+  fPDF->ScaleCharm       (ksea_u);
+  if(above_charm) {
+     fPDFc->ScaleUpValence   (kval_u);
+     fPDFc->ScaleDownValence (kval_d);
+     fPDFc->ScaleUpSea       (ksea_u);
+     fPDFc->ScaleDownSea     (ksea_d);
+     fPDFc->ScaleStrange     (ksea_d);
+     fPDFc->ScaleCharm       (ksea_u);
+  }
+
+  // Rules of thumb
+  // ---------------------------------------
+  // - For W+ exchange use: -1/3|e| quarks and -2/3|e| antiquarks
+  // - For W- exchange use:  2/3|e| quarks and  1/3|e| antiquarks
+  // - For each qi -> qj transition multiply with the (ij CKM element)^2
+  // - Use isospin symmetry to get neutron's u,d from proton's u,d
+  //    -- neutron d = proton u
+  //    -- neutron u = proton d
+  // - Use u = usea + uvalence. Same for d
+  // - For s,c use q=qbar
+  // - For t,b use q=qbar=0
+
+  fuv   = fPDF  -> UpValence();
+  fus   = fPDF  -> UpSea();
+  fdv   = fPDF  -> DownValence();
+  fds   = fPDF  -> DownSea();
+  fs    = fPDF  -> Strange();
+  fc    = 0.;
+  fuv_c = fPDFc -> UpValence();   // will be 0 if < charm threshold
+  fus_c = fPDFc -> UpSea();       // ...
+  fdv_c = fPDFc -> DownValence(); // ...
+  fds_c = fPDFc -> DownSea();     // ...
+  fs_c  = fPDFc -> Strange();     // ...
+  fc_c  = fPDFc -> Charm();       // ...
+
+  // The above are the proton parton density function. Get the PDFs for the
+  // hit nucleon (p or n) by swapping u<->d if necessary
+
+  int nuc_pdgc = tgt.HitNucPdg();
+  bool isP = pdg::IsProton  (nuc_pdgc);
+  bool isN = pdg::IsNeutron (nuc_pdgc);
+  assert(isP  || isN);
+
+  double tmp = 0;
+  if (isN) {  // swap u <-> d
+    tmp = fuv;   fuv   = fdv;   fdv   = tmp;
+    tmp = fus;   fus   = fds;   fds   = tmp;
+    tmp = fuv_c; fuv_c = fdv_c; fdv_c = tmp;
+    tmp = fus_c; fus_c = fds_c; fds_c = tmp;
+  }
+
+}
+
 void QPMDISStrucFuncBase::Calculate(const Interaction * interaction) const
 {
   // Reset mutable members
@@ -190,218 +405,4 @@ void QPMDISStrucFuncBase::Calculate(const Interaction * interaction) const
      << "F1-F5 = "
      << fF1 << ", " << fF2 << ", " << fF3 << ", " << fF4 << ", " << fF5;
 #endif
-}
-
-//____________________________________________________________________________
-double QPMDISStrucFuncBase::NuclMod(const Interaction * interaction) const
-{
-// Nuclear modification to Fi
-// The scaling variable can be overwritten to include corrections
-
-  if( interaction->TestBit(kIAssumeFreeNucleon)   ) return 1.0;
-  if( interaction->TestBit(kINoNuclearCorrection) ) return 1.0;
-
-  double f = 1.;
-  if(fIncludeNuclMod) {
-     const Target & tgt  = interaction->InitState().Tgt();
-
-//   The x used for computing the DIS Nuclear correction factor should be the
-//   experimental x, not the rescaled x or off-shell-rest-frame version of x
-//   (i.e. selected x).  Since we do not have access to experimental x at this
-//   point in the calculation, just use selected x.
-     const Kinematics & kine  = interaction->Kine();
-     double x  = kine.x();
-     int    A = tgt.A();
-     f = utils::nuclear::DISNuclFactor(x,A);
-#ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
-     LOG("DISSF", pDEBUG) << "Nuclear factor for x of " << x << "  = " << f;
-#endif
-  }
-
-  return f;
-}
-
-//____________________________________________________________________________
-double QPMDISStrucFuncBase::R(const Interaction * interaction) const
-{
-// Computes R ( ~ longitudinal structure function FL = R * 2xF1)
-// The scaling variable can be overwritten to include corrections
-
-//   The x used for computing the DIS Nuclear correction factor should be the
-//   experimental x, not the rescaled x or off-shell-rest-frame version of x
-//   (i.e. selected x).  Since we do not have access to experimental x at this
-//   point in the calculation, just use selected x.
-  if(fIncludeR) {
-    const Kinematics & kine  = interaction->Kine();
-    double x  = kine.x();
-//    double x  = this->ScalingVar(interaction);
-    double Q2val = this->Q2(interaction);
-    double Rval  = utils::phys::RWhitlow(x, Q2val);
-    return Rval;
-  }
-  return 0;
-}
-
-void QPMDISStrucFuncBase::CalcPDFs(const Interaction * interaction) const
-{
-  // Clean-up previous calculation
-  fPDF  -> Reset();
-  fPDFc -> Reset();
-
-  // Get the kinematical variables x,Q2 (could include corrections)
-  double x     = this->ScalingVar(interaction);
-  double Q2val = this->Q2(interaction);
-
-  // Get the hit nucleon mass (could be off-shell)
-  const Target & tgt = interaction->InitState().Tgt();
-  double M = tgt.HitNucP4().M();
-
-  // Get the Q2 for which PDFs will be evaluated
-  double Q2pdf = TMath::Max(Q2val, fQ2min);
-
-  // Compute PDFs at (x,Q2)
-#ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
-  LOG("DISSF", pDEBUG) << "Calculating PDFs @ x = " << x << ", Q2 = " << Q2pdf;
-#endif
-  fPDF->Calculate(x, Q2pdf);
-
-  // Check whether it is above charm threshold
-  bool above_charm =
-           utils::kinematics::IsAboveCharmThreshold(x, Q2val, M, fMc);
-  if(above_charm) {
-#ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
-    LOG("DISSF", pDEBUG)
-      << "The event is above the charm threshold (mcharm = " << fMc << ")";
-#endif
-    if(fCharmOff) {
-       LOG("DISSF", pINFO) << "Charm production is turned off";
-    } else {
-       // compute the slow rescaling var
-       double xc = utils::kinematics::SlowRescalingVar(x, Q2val, M, fMc);
-       if(xc<0 || xc>1) {
-          LOG("DISSF", pINFO) << "Unphys. slow rescaling var: xc = " << xc;
-       } else {
-          // compute PDFs at (xc,Q2)
-#ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
-          LOG("DISSF", pDEBUG)
-              << "Calculating PDFs @ xc (slow rescaling) = " << x << ", Q2 = " << Q2val;
-#endif
-          fPDFc->Calculate(xc, Q2pdf);
-       }
-    }// charm off?
-  }//above charm thr?
-  else {
-    LOG("DISSF", pDEBUG)
-     << "The event is below the charm threshold (mcharm = " << fMc << ")";
-  }
-
-  // Compute the K factors
-  double kval_u = 1.;
-  double kval_d = 1.;
-  double ksea_u = 1.;
-  double ksea_d = 1.;
-
-  this->KFactors(interaction, kval_u, kval_d, ksea_u, ksea_d);
-
-#ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
-  LOG("DISSF", pDEBUG) << "K-Factors:";
-  LOG("DISSF", pDEBUG) << "U: Kval = " << kval_u << ", Ksea = " << ksea_u;
-  LOG("DISSF", pDEBUG) << "D: Kval = " << kval_d << ", Ksea = " << ksea_d;
-#endif
-
-  // Apply the K factors
-  //
-  // Always scale d pdfs with d kfactors and u pdfs with u kfactors.
-  // Don't swap the applied kfactors for neutrons.
-  // Debdatta & Donna noted (Sep.2006) that a similar swap in the neugen
-  // implementation was the cause of the difference in nu and nubar F2
-  //
-  fPDF->ScaleUpValence   (kval_u);
-  fPDF->ScaleDownValence (kval_d);
-  fPDF->ScaleUpSea       (ksea_u);
-  fPDF->ScaleDownSea     (ksea_d);
-  fPDF->ScaleStrange     (ksea_d);
-  fPDF->ScaleCharm       (ksea_u);
-  if(above_charm) {
-     fPDFc->ScaleUpValence   (kval_u);
-     fPDFc->ScaleDownValence (kval_d);
-     fPDFc->ScaleUpSea       (ksea_u);
-     fPDFc->ScaleDownSea     (ksea_d);
-     fPDFc->ScaleStrange     (ksea_d);
-     fPDFc->ScaleCharm       (ksea_u);
-  }
-
-  // Rules of thumb
-  // ---------------------------------------
-  // - For W+ exchange use: -1/3|e| quarks and -2/3|e| antiquarks
-  // - For W- exchange use:  2/3|e| quarks and  1/3|e| antiquarks
-  // - For each qi -> qj transition multiply with the (ij CKM element)^2
-  // - Use isospin symmetry to get neutron's u,d from proton's u,d
-  //    -- neutron d = proton u
-  //    -- neutron u = proton d
-  // - Use u = usea + uvalence. Same for d
-  // - For s,c use q=qbar
-  // - For t,b use q=qbar=0
-
-  fuv   = fPDF  -> UpValence();
-  fus   = fPDF  -> UpSea();
-  fdv   = fPDF  -> DownValence();
-  fds   = fPDF  -> DownSea();
-  fs    = fPDF  -> Strange();
-  fc    = 0.;
-  fuv_c = fPDFc -> UpValence();   // will be 0 if < charm threshold
-  fus_c = fPDFc -> UpSea();       // ...
-  fdv_c = fPDFc -> DownValence(); // ...
-  fds_c = fPDFc -> DownSea();     // ...
-  fs_c  = fPDFc -> Strange();     // ...
-  fc_c  = fPDFc -> Charm();       // ...
-
-  // The above are the proton parton density function. Get the PDFs for the
-  // hit nucleon (p or n) by swapping u<->d if necessary
-
-  int nuc_pdgc = tgt.HitNucPdg();
-  bool isP = pdg::IsProton  (nuc_pdgc);
-  bool isN = pdg::IsNeutron (nuc_pdgc);
-  assert(isP  || isN);
-
-  double tmp = 0;
-  if (isN) {  // swap u <-> d
-    tmp = fuv;   fuv   = fdv;   fdv   = tmp;
-    tmp = fus;   fus   = fds;   fds   = tmp;
-    tmp = fuv_c; fuv_c = fdv_c; fdv_c = tmp;
-    tmp = fus_c; fus_c = fds_c; fds_c = tmp;
-  }
-
-}
-
-// The 2 functions below are from https://github.com/GENIE-MC/Generator/blob/master/src/Physics/DeepInelastic/XSection/BYStrucFunc.cxx
-double BYStrucFunc::ScalingVar(const Interaction * interaction) const
-{
-// Overrides QPMDISStrucFuncBase::ScalingVar() to compute the BY scaling var
-
-  const Kinematics & kine  = interaction->Kine();
-  double x  = kine.x();
-  double myQ2 = this->Q2(interaction);
-  //myQ2 = TMath::Max(Q2,fQ2min);
-  LOG("BodekYang", pDEBUG) << "Q2 at scaling var calculation = " << myQ2;
-
-  double a  = TMath::Power( 2*kProtonMass*x, 2 ) / myQ2;
-  double xw =  2*x*(myQ2+fB) / (myQ2*(1.+TMath::Sqrt(1+a)) +  2*fA*x);
-  return xw;
-}
-//____________________________________________________________________________
-void BYStrucFunc::KFactors(const Interaction * interaction,
-	         double & kuv, double & kdv, double & kus, double & kds) const
-{
-// Overrides QPMDISStrucFuncBase::KFactors() to compute the BY K factors for
-// u(valence), d(valence), u(sea), d(sea);
-
-  double myQ2  = this->Q2(interaction);
-  double GD  = 1. / TMath::Power(1.+myQ2/0.71, 2); // p elastic form factor
-  double GD2 = TMath::Power(GD,2);
-
-  kuv = (1.-GD2)*(myQ2+fCv2U)/(myQ2+fCv1U); // K - u(valence)
-  kdv = (1.-GD2)*(myQ2+fCv2D)/(myQ2+fCv1D); // K - d(valence)
-  kus = myQ2/(myQ2+fCsU);                   // K - u(sea)
-  kds = myQ2/(myQ2+fCsD);                   // K - d(sea)
 }
