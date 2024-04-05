@@ -31,7 +31,7 @@ const bool fIncludeR = true;
 // include a nuclear factor (accounting for shadowing/anti-shadowing)
 const bool fIncludeNuclMod = true;
 // include corrections for calculating relation between 2xF1 and F2
-const bool fUse2016Corrections = false;
+const bool fUse2016Corrections = true;
 // Select value for Q2 cutoff in relation between 2xF1 and F2
 const double fLowQ2CutoffF1F2 = 0.8;
 // BY constants
