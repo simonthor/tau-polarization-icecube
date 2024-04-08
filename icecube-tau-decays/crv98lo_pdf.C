@@ -40,7 +40,7 @@ int crv98lo_pdf(std::string input_file, std::string output_file) {
         std::cout << word << std::endl;
         if (word == "x") {
             xcol = index;
-        } else if (word == "Q2s") {
+        } else if (word == "Q2") {
             Q2col = index;
         } else if (word == "hitnuc") {
             nuc_pdgcol = index;
