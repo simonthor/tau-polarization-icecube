@@ -15,17 +15,21 @@ inside_energy_list=0
 start_step=0
 decay_flags=""
 while IFS= read -r line; do
+    echo $line
     if [[ $line == "energy:" ]]; then
         inside_energy_list=1
     elif [[ $inside_energy_list -eq 1 ]]; then
         if [[ $line == "  - "* ]]; then
             # Only select the part of the line after the "  - " and add it to the list
             energy_list+=(${line:4})
+            echo "Added to energy list"
         else
             inside_energy_list=0
+            echo "end energy list"
         fi
     elif [[ $line == start_step* ]]; then
         start_step=$(echo $line | cut -d' ' -f2)
+        echo "Set start step"
     elif [[ $line == "rad: off" ]]; then
         decay_flags="-r $decay_flags"
     elif [[ $line == "boost: on" ]]; then
@@ -68,20 +72,20 @@ for energy in "${energy_list[@]}"; do
 
     if [ $start_step -lt 3 ]; then
         echo "Running Tauola tau decay simulation with polarization..."
-        # Run the Tauola tau decay simulation, with polarization
-        ./decay.o $input_dat_file $output_dat_file 6 7 8 $output_csv_file $decay_flags &> icecube_tauola_run_e$energy.log
+        # Run the Tauola tau decay simulation, with polarization. WARNING: the columns are currently set to 1, 2, 3. If this is not the case, change
+        ./decay.o $input_dat_file $output_dat_file 1 2 3 $output_csv_file $decay_flags &> ../logfiles/icecube_tauola_run_e$energy.log
     fi
 
     if [ $start_step -lt 4 ]; then
         echo "Running Tauola tau decay simulation without polarization..."
         # Run the Tauola tau decay simulation, without polarization
-        ./decay.o $input_dat_file $output_dat_file_nopol 0 0 0 $decay_flags &> icecube_tauola_run_e${energy}_nopol.log
+        ./decay.o $input_dat_file $output_dat_file_nopol 0 0 0 $decay_flags &> ../logfiles/icecube_tauola_run_e${energy}_nopol.log
     fi
 
     if [ $start_step -lt 5 ]; then
         echo "Running Tauola tau decay simulation with fully left-handed polarization..."
         # Run the Tauola tau decay simulation, without polarization
-        ./decay.o $input_dat_file $output_dat_file_lpol 0 0 -1 $decay_flags &> icecube_tauola_run_e${energy}_lpol.log
+        ./decay.o $input_dat_file $output_dat_file_lpol 0 0 -1 $decay_flags &> ../logfiles/icecube_tauola_run_e${energy}_lpol.log
     fi
     
     if [ $start_step -lt 6 ]; then
@@ -93,6 +97,6 @@ for energy in "${energy_list[@]}"; do
     if [ $start_step -lt 7 ]; then
         echo "Running Pythia tau decay simulation with left-handed polarization..."
         # Run the Tauola tau decay simulation, without polarization
-        python pythia_tau_decay.py $input_csv_file ../data/pythia_tau_decays_e${energy}_lpol.csv -p -1 &> ../logfiles/pythia_tau_decays_e${energy}_lpol.log
+        python pythia_tau_decay.py $input_csv_file ../data/pythia_tau_decays_e${energy}_lpol.csv -p 1 &> ../logfiles/pythia_tau_decays_e${energy}_lpol.log
     fi
 done
