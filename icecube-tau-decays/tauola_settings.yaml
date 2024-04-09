@@ -1,4 +1,4 @@
-start_step: 6
+start_step: 2
 rad: on
 boost: off
 energy:
@@ -7,4 +7,3 @@ energy:
   - 20
   - 50
   - 100
-
