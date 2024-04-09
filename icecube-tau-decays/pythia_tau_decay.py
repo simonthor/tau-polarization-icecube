@@ -12,7 +12,7 @@ def main():
     parser.add_argument("-p", "--polarization",
                         dest="p",
                         type=float,
-                        help="Polarization in z direction. It might be that -1, 0, or 1 are the only possible values, or maybe floats are possible", 
+                        help="Polarization magnitude z direction. A float is possible, but the polarization can only be fully parallel It might be that -1, 0, or 1 are the only possible values, or maybe floats are possible", 
                         default=0)
     
     args = parser.parse_args()
@@ -20,6 +20,8 @@ def main():
     input_filename = args.input_file
     output_filename = args.output_file
     polarization = args.p
+    
+    print(polarization)
 
     tau_pdg_id = 15  # PDG ID for tau lepton
 
