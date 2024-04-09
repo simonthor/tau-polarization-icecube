@@ -64,7 +64,7 @@ vector<double> get_pol_vec(string& line, vector<int>& pol_vec_i, GenEvent& evt) 
     // Check that the event number in the csv file matches the event number in the HepMC3 GenEvent
     if (index_counter == 0) {
       if (stoi(token) != evt.event_number()) {
-        cout << "Event number in csv file does not match event number in HepMC3 GenEvent\n"
+        cerr << "Event number in csv file does not match event number in HepMC3 GenEvent\n"
         << "Instead of " << evt.event_number() << " found " << token << " in csv file\n";
         exit(-1);
       }
@@ -214,6 +214,7 @@ int main(int argc, char **argv) {
     ++events_parsed;
     if (events_parsed % 1000 == 0) {
       std::cout << "Parsed " << events_parsed << " events" << std::endl;
+      std::cout << "Previous tau polarization vector: " << pol_vec[0] << " " << pol_vec[1] << " " << pol_vec[2] << std::endl;
     }
   }
 }
