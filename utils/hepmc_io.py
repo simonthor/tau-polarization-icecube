@@ -47,6 +47,24 @@ def load_hepmc(filename: str) -> pd.DataFrame:
     return pd.DataFrame(particles, columns=['event_num', 'pdg', 'E', 'px', 'py', 'pz'])
 
 
+def load_hepmc_tau(filename: str) -> pd.DataFrame:
+    """Load a HepMC file which only contains the tau and its decay products"""
+    particles = []
+    with pyhepmc.open(filename, "r") as f:
+        # Iterate over all events
+        for i, evt in enumerate(f):
+            # Find the tau and identify its daughter tau neutrino
+            for particle in evt.particles:
+                event_number = evt.event_number
+                if np.abs(particle.pid) == 15 or particle.status == 1:
+                    particles.append([event_number, particle.pid, particle.momentum.e, particle.momentum.px, particle.momentum.py, particle.momentum.pz])
+
+            if i % 10_000 == 0:
+                print(i)
+
+    return pd.DataFrame(particles, columns=['event_num', 'pdg', 'E', 'px', 'py', 'pz'])
+
+
 def csv2genevent(event: pd.DataFrame, nucleus_row=0, nutau_row=1, tau_row=2) -> pyhepmc.GenEvent:
     """This is a simplified version of the same function in plot_hepmc.
     In that file, all decay products are included in the decay chain (including the electron that is not in the csv file)
