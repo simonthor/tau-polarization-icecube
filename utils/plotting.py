@@ -12,8 +12,10 @@ def compare_histos(
     else:
         fig = ax.get_figure()
 
+    hists = {}
     for label, v in datasets.items():
         values, _, polygons = ax.hist(v, bins=bins, label=label, density=density, histtype="step", lw=2)
+        hists[label] = values
         # The error bars should be the sqrt of the number of events in each bin. 
         # If density is used, the error bars should be 
         # sqrt(counts) / bin_width / sum(counts) = sqrt(values) / sqrt(sum(counts) * bin_width)
@@ -29,7 +31,7 @@ def compare_histos(
     ax.grid(True, alpha=0.5)
     # ax.legend()
 
-    return fig, ax
+    return ax, hists
 
 
 def filter_events(decay_products: pd.DataFrame, col: str, filter_func: callable, **kwargs) -> pd.DataFrame:
@@ -49,7 +51,10 @@ def plot_histograms(
     Different subplots correspond to different keys in the dicts (typically incoming neutrino energy)."""
     
     d1 = list(datasets.values())[0]
-    fig, axs = plt.subplots(ncols=len(d1), figsize=(4*len(d1), 4), layout="constrained")
+    fig, axs = plt.subplots(
+        ncols=len(d1), 
+        # nrows=2, 
+        figsize=(4*len(d1), 4), layout="constrained")
 
     for i, (e, ax) in enumerate(zip(d1, axs)):
         b = bins[e]
@@ -60,9 +65,14 @@ def plot_histograms(
             events_to_plot[label] = plot_func(selected_events)
 
         # Plot the momentum fraction as a histogram from 0 to 1
-        compare_histos(events_to_plot, ax=ax, bins=b, **kwargs)
-        ax.set_title(f"$E_\\nu = {e}$ GeV")
-        if i==0:
-            ax.legend()
+        _, hists = compare_histos(events_to_plot, ax=ax, bins=b, **kwargs)
         
+        ax.set_title(f"$E_\\nu = {e}$ GeV")
+
+        # if i==0:
+        ax.legend()
+    
+        # TODO Plot ratio
+        # for hist, label in hists.items():
+        #     hist
     return fig, axs
