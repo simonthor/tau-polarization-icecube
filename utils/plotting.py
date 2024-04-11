@@ -46,7 +46,7 @@ def filter_events(decay_products: pd.DataFrame, col: str, filter_func: callable,
 
 def plot_histograms(
     datasets: dict[str, dict[int, pd.DataFrame]], /, *,
-    bins: dict[int, np.ndarray], filter_func: callable, plot_func: callable, **kwargs):
+    bins: dict[int, np.ndarray], filter_func: callable, plot_func: callable, title_label: str = "$E_\\nu = {e}$ GeV", **kwargs):
     """Plot several subplots, each one containing three histograms. 
     Different subplots correspond to different keys in the dicts (typically incoming neutrino energy)."""
     
@@ -67,7 +67,7 @@ def plot_histograms(
         # Plot the momentum fraction as a histogram from 0 to 1
         _, hists = compare_histos(events_to_plot, ax=ax, bins=b, **kwargs)
         
-        ax.set_title(f"$E_\\nu = {e}$ GeV")
+        ax.set_title(title_label.format(e=e))
 
         # if i==0:
         ax.legend()
