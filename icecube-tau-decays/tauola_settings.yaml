@@ -2,4 +2,9 @@ start_step: 1
 rad: on
 boost: off
 energy:
-  - tau
+  - 0
+  - 5
+  - 10
+  - 20
+  - 50
+  - 100
