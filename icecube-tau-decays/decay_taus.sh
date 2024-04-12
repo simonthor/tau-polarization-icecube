@@ -98,12 +98,12 @@ for energy in "${energy_list[@]}"; do
     if [ $start_step -lt 6 ]; then
         echo "Running Pythia tau decay simulation without polarization..."
         # Run the Tauola tau decay simulation, without polarization
-        python pythia_tau_decay.py $input_csv_file ../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_pythia_output_nopol.csv -p 0 &> ../logfiles/pythia_tau_decays_e${energy}_nopol.log
+        ././pythia_decay.o $input_csv_file ../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_pythia_output_nopol.csv -p 0 &> ../logfiles/pythia_tau_decays_e${energy}_nopol.log
     fi
 
     if [ $start_step -lt 7 ]; then
         echo "Running Pythia tau decay simulation with left-handed polarization..."
         # Run the Tauola tau decay simulation, without polarization
-        python pythia_tau_decay.py $input_csv_file ../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_pythia_output_lpol.csv -p -1 &> ../logfiles/pythia_tau_decays_e${energy}_lpol.log
+        ./pythia_decay.o $input_csv_file ../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_pythia_output_lpol.csv -p -1 &> ../logfiles/pythia_tau_decays_e${energy}_lpol.log
     fi
 done
