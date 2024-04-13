@@ -3,8 +3,3 @@ rad: on
 boost: off
 energy:
   - 0
-  - 5
-  - 10
-  - 20
-  - 50
-  - 100
