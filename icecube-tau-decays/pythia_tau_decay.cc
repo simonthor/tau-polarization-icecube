@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <iomanip>
 #include "Pythia8/Pythia.h"
 
 struct SimpleParticle {
@@ -98,10 +99,10 @@ int main(int argc, char* argv[]) {
         // Write tau lepton
         outfile << particle.event_num << ","
                 << particle.pdg << ","
-                << particle.E << ","
-                << particle.px << ","
-                << particle.py << ","
-                << particle.pz << "\n";
+                << std::setprecision(16) << particle.E << ","
+                << std::setprecision(16) << particle.px << ","
+                << std::setprecision(16) << particle.py << ","
+                << std::setprecision(16) << particle.pz << "\n";
 
         // Reset Pythia8 event
         pythia.event.reset();
@@ -121,10 +122,10 @@ int main(int argc, char* argv[]) {
             if (decay_product.isFinal()) {
                 outfile << particle.event_num << ","
                         << decay_product.id() << ","
-                        << decay_product.e() << ","
-                        << decay_product.px() << ","
-                        << decay_product.py() << ","
-                        << decay_product.pz() << "\n";
+                        << std::setprecision(16) << decay_product.e() << ","
+                        << std::setprecision(16) << decay_product.px() << ","
+                        << std::setprecision(16) << decay_product.py() << ","
+                        << std::setprecision(16) << decay_product.pz() << "\n";
             }
         }
     }
