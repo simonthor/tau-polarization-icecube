@@ -14,6 +14,9 @@ def compare_histos(
 
     hists = {}
     for label, v in datasets.items():
+        if (nan_count := np.isnan(v).sum()) > 0:
+            print(f"WARNING: {nan_count} nan values in the dataset {label}")
+        
         values, _, polygons = ax.hist(v, bins=bins, label=label, density=density, histtype="step", lw=2)
         hists[label] = values
         # The error bars should be the sqrt of the number of events in each bin. 
