@@ -1,5 +1,9 @@
-start_step: 5
+start_step: 2
 rad: on
 boost: off
 energy:
-  - 1000
+  - 5
+  - 10
+  - 20
+  - 50
+  - 100
