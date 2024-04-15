@@ -184,10 +184,10 @@ std::vector<double> CalculatePDFs(double x, double Q2val, double M, int nuc_pdgc
   double fs_c  = fPDFc -> Strange();    
   double fc_c  = fPDFc -> Charm();      
   
-  if (above_charm) {
-    // std::cout << "fuv: " << fuv << " fus: " << fus << " fdv: " << fdv << " fds: " << fds << " fs: " << fs << " fc: " << fc << std::endl;
-    std::cout << "fuv_c: " << fuv_c << " fus_c: " << fus_c << " fdv_c: " << fdv_c << " fds_c: " << fds_c << " fs_c: " << fs_c << " fc_c: " << fc_c << std::endl;
-  }
+  // if (above_charm) {
+  //   // std::cout << "fuv: " << fuv << " fus: " << fus << " fdv: " << fdv << " fds: " << fds << " fs: " << fs << " fc: " << fc << std::endl;
+  //   std::cout << "fuv_c: " << fuv_c << " fus_c: " << fus_c << " fdv_c: " << fdv_c << " fds_c: " << fds_c << " fs_c: " << fs_c << " fc_c: " << fc_c << std::endl;
+  // }
 
   // The above are the proton parton density function. Get the PDFs for the
   // hit nucleon (p or n) by swapping u<->d if necessary
@@ -387,10 +387,10 @@ int analytic_tau_pol_dis(std::string input_file, std::string output_file) {
 
   // Identify the index where the value is "x" and "Q2"
   while (std::getline(s, word, ',')) {
-    std::cout << word << std::endl;
-    if (word == "x") {
+    // std::cout << word << std::endl;
+    if (word == "xs") {
         xcol = index;
-    } else if (word == "Q2") {
+    } else if (word == "Q2s") {
         Q2col = index;
     } else if (word == "hitnuc") {
         nuc_pdgcol = index;
@@ -410,7 +410,7 @@ int analytic_tau_pol_dis(std::string input_file, std::string output_file) {
 
   std::cout << "xcol: " << xcol << ", Q2col: " << Q2col 
     << ", nuc_pdgcol: " << nuc_pdgcol << ", discol: " << discol 
-    << ", Acol" << Acol << ", Mcol: " << Mcol << ", hitqrkcol: " << hitqrkcol
+    << ", Acol: " << Acol << ", Mcol: " << Mcol << ", hitqrkcol: " << hitqrkcol
     << ", seacol: " << seacol
     << std::endl;
 
