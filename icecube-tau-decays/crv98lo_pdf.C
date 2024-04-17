@@ -5,6 +5,7 @@
 
 #include "Physics/PartonDistributions/PDFModelI.h"
 #include "Physics/PartonDistributions/PDF.h"
+#include "Physics/DeepInelastic/XSection/BYPDF.h"
 #include "Physics/PartonDistributions/GRV98LO.h"
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/Utils/KineUtils.h"
@@ -15,10 +16,13 @@ using namespace genie;
 
 
 int crv98lo_pdf(std::string input_file, std::string output_file) {
+    BYPDF * bypdf = new BYPDF();
+    bypdf->Configure("Default");
+
     const PDFModelI * pdf_model =
-         dynamic_cast<const PDFModelI *> (new GRV98LO());
-    PDF* fPDF =  new PDF();
+         dynamic_cast<const PDFModelI *> (bypdf);
     
+    PDF* fPDF =  new PDF();
     fPDF->SetModel(pdf_model);
 
     // Source: https://github.com/GENIE-MC/Generator/blob/1817b89cf815c0694c187f874288f1c1be1e712a/config/GRV98LO.xml#L11
