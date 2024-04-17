@@ -384,6 +384,7 @@ int analytic_tau_pol_dis(std::string input_file, std::string output_file) {
   int index = 0;
 
   int xcol, Q2col, nuc_pdgcol, discol, Acol, Mcol, hitqrkcol, seacol;
+  xcol = Q2col = nuc_pdgcol = discol = Acol = Mcol = hitqrkcol = seacol = 0;
 
   // Identify the index where the value is "x" and "Q2"
   while (std::getline(s, word, ',')) {
@@ -413,7 +414,12 @@ int analytic_tau_pol_dis(std::string input_file, std::string output_file) {
     << ", Acol: " << Acol << ", Mcol: " << Mcol << ", hitqrkcol: " << hitqrkcol
     << ", seacol: " << seacol
     << std::endl;
-
+  
+  if ((xcol == 0) && (Q2col == 0)) {
+    std::cerr << "Could not find 'xs' and 'Q2s' in the header of the input file" << std::endl;
+    return 1;
+  }
+  
   // Open output file and write header to it
   std::ofstream ofile(output_file);
   ofile << line << ",F1,F2,F3,F4,F5" << std::endl;
