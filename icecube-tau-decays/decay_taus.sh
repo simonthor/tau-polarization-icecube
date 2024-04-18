@@ -86,13 +86,13 @@ for energy in "${energy_list[@]}"; do
     if [ $start_step -lt 4 ]; then
         echo "Running Tauola tau decay simulation without polarization..."
         # Run the Tauola tau decay simulation, without polarization
-        ./decay.o $input_dat_file $output_dat_file_nopol 0 0 0 $decay_flags &> ../logfiles/tau_tauola_run_e${energy}_nopol.log
+        ./decay.o $input_dat_file $output_dat_file_nopol 0 0 0 $decay_flags &> ../logfiles/icecube_tauola_run_e${energy}_nopol.log
     fi
 
     if [ $start_step -lt 5 ]; then
         echo "Running Tauola tau decay simulation with fully left-handed polarization..."
         # Run the Tauola tau decay simulation, without polarization
-        ./decay.o $input_dat_file $output_dat_file_lpol 0 0 -1 $decay_flags &> ../logfiles/tau_tauola_run_e${energy}_lpol.log
+        ./decay.o $input_dat_file $output_dat_file_lpol 0 0 -1 $decay_flags &> ../logfiles/icecube_tauola_run_e${energy}_lpol.log
     fi
     
     # if [ $start_step -lt 6 ]; then
