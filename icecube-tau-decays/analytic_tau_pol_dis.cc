@@ -13,6 +13,7 @@
 #include "Framework/Conventions/Constants.h"
 #include "Physics/PartonDistributions/PDFModelI.h"
 #include "Physics/PartonDistributions/PDF.h"
+#include "Physics/DeepInelastic/XSection/BYPDF.h"
 #include "Physics/PartonDistributions/GRV98LO.h"
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/Utils/KineUtils.h"
@@ -367,8 +368,12 @@ std::vector<double> structureFunctions(std::vector<double> pdf_values, double Q2
 
 int analytic_tau_pol_dis(std::string input_file, std::string output_file) {
   // PDF model
+  BYPDF * bypdf = new BYPDF();
+  bypdf->Configure("Default");
+
   const PDFModelI * pdf_model =
-        dynamic_cast<const PDFModelI *> (new GRV98LO());
+        dynamic_cast<const PDFModelI *> (bypdf);
+  
   PDF* fPDF =  new PDF();
   // PDF used when above charm production threshold
   PDF* fPDFc = new PDF();
