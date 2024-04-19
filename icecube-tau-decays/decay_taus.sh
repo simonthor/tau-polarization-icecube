@@ -57,13 +57,13 @@ for energy in "${energy_list[@]}"; do
     # input_csv_file=../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_particles_extended.csv
     # Define output csv file name
     output_csv_file=../data/NuTau_$energy.0_GeV_tau.csv
-    # output_csv_file=../data/../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_tau.csv
+    # output_csv_file=../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_tau.csv
     # Define Tauola input dat file name
     input_dat_file=../data/NuTau_$energy.0_GeV_tauola_input.dat
-    # input_dat_file=../data/../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_tauola_input.dat
+    # input_dat_file=../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_tauola_input.dat
     # Define Tauola output dat file name
     output_dat_file=../data/NuTau_$energy.0_GeV_tauola_output$file_end.dat
-    # output_dat_file=../data/../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_tauola_output$file_end.dat
+    # output_dat_file=../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_tauola_output$file_end.dat
     # Define Tauola output dat file name without polarization
     output_dat_file_nopol=../data/NuTau_$energy.0_GeV_tauola_output_nopol$file_end.dat
     # output_dat_file_nopol=../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_tauola_output_nopol$file_end.dat
