@@ -323,39 +323,37 @@ void QPMDISStrucFuncBase::Calculate(const Interaction * interaction) const
 
   // ***  CHARGED CURRENT
 
-  if(is_CC) {
-    double q=0, qbar=0;
+  double q=0, qbar=0;
 
-    if (is_nu) {
-      q    = ( switch_dv * fdv   + switch_ds * fds   ) * fVud2 +
-             ( switch_s  * fs                        ) * fVus2 +
-             ( switch_dv * fdv_c + switch_ds * fds_c ) * fVcd2 +
-             ( switch_s  * fs_c                      ) * fVcs2;
+  if (is_nu) {
+    q    = ( switch_dv * fdv   + switch_ds * fds   ) * fVud2 +
+            ( switch_s  * fs                        ) * fVus2 +
+            ( switch_dv * fdv_c + switch_ds * fds_c ) * fVcd2 +
+            ( switch_s  * fs_c                      ) * fVcs2;
 
-      qbar = ( switch_ubar * fus  ) * fVud2 +
-             ( switch_ubar * fus  ) * fVus2 +
-             ( switch_cbar * fc_c ) * fVcd2 +
-             ( switch_cbar * fc_c ) * fVcs2;
-    }
-    else
-    if (is_nubar) {
-      q    = ( switch_uv * fuv + switch_us * fus    ) * fVud2 +
-             ( switch_uv * fuv + switch_us * fus    ) * fVus2 +
-             ( switch_c  * fc_c                     ) * fVcd2 +
-             ( switch_c  * fc_c                     ) * fVcs2;
-
-      qbar = ( switch_dbar * fds_c ) * fVcd2 +
-             ( switch_dbar * fds   ) * fVud2 +
-             ( switch_sbar * fs    ) * fVus2 +
-             ( switch_sbar * fs_c  ) * fVcs2;
-    }
-    else {
-      return;
-    }
-
-    F2val  = 2*(q+qbar);
-    xF3val = 2*(q-qbar);
+    qbar = ( switch_ubar * fus  ) * fVud2 +
+            ( switch_ubar * fus  ) * fVus2 +
+            ( switch_cbar * fc_c ) * fVcd2 +
+            ( switch_cbar * fc_c ) * fVcs2;
   }
+  else
+  if (is_nubar) {
+    q    = ( switch_uv * fuv + switch_us * fus    ) * fVud2 +
+            ( switch_uv * fuv + switch_us * fus    ) * fVus2 +
+            ( switch_c  * fc_c                     ) * fVcd2 +
+            ( switch_c  * fc_c                     ) * fVcs2;
+
+    qbar = ( switch_dbar * fds_c ) * fVcd2 +
+            ( switch_dbar * fds   ) * fVud2 +
+            ( switch_sbar * fs    ) * fVus2 +
+            ( switch_sbar * fs_c  ) * fVcs2;
+  }
+  else {
+    return;
+  }
+
+  F2val  = 2*(q+qbar);
+  xF3val = 2*(q-qbar);
 
   double Q2val = this->Q2        (interaction);
   double x     = this->ScalingVar(interaction);
