@@ -65,11 +65,11 @@ fi
 if [ $start_step -lt 5 ]; then
     echo "Running Tauola tau decay simulation with polarization..."
     # Run the Tauola tau decay simulation, with polarization
-    ./decay.o ../data/tauola_input_genie_e$energy.dat ../data/tauola_output_genie_e$energy.dat 6 7 8 ../data/genie_pol_e$energy.csv &> tauola_run_e$energy.log
+    ./decay.o ../data/tauola_input_genie_e$energy.dat ../data/tauola_output_genie_e$energy.dat 6 7 8 ../data/genie_pol_e$energy.csv &> ../logfiles/tauola_run_e$energy.log
 
     echo "Running Tauola tau decay simulation without polarization..."
     # Run the Tauola tau decay simulation, without polarization
-    ./decay.o ../data/tauola_input_genie_e$energy.dat ../data/tauola_output_genie_nopol_e$energy.dat 0 0 0 &> tauola_run_e${energy}_nopol.log
+    ./decay.o ../data/tauola_input_genie_e$energy.dat ../data/tauola_output_genie_nopol_e$energy.dat 0 0 0 &> ../logfiles/tauola_run_e${energy}_nopol.log
 fi
 
 # Extract the number of tau events from the settings.yaml file
