@@ -98,7 +98,7 @@ if [ $g4_tau_info -eq 1 ]; then
 fi
 
 # Run Geant4 tau decay simulation
-../learn-geant4/ice-11-2/build/exampleB1 ../learn-geant4/ice-11-2/build/run_decays.mac &> geant4_run_e$energy.log
+../learn-geant4/ice-11-2/build/exampleB1 ../learn-geant4/ice-11-2/build/run_decays.mac &> ../logfiles/geant4_run_e$energy.log
 
 # Finish
 echo "All done!"
