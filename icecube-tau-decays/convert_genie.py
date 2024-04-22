@@ -66,7 +66,7 @@ def main():
     #%%
     if write_events:
         # Write the number of events to the yaml file at the end
-        tau_n_events = genie_events["event_num"].unique().size
+        tau_n_events = genie_events["event_num"].nunique()
         
         with open("settings.yaml", "r") as f:
             file_contents = f.read()
