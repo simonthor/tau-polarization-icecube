@@ -30,7 +30,8 @@
 #include "ActionInitialization.hh"
 #include "PrimaryGeneratorAction.hh"
 #include "EventAction.hh"
-#include "SteppingAction.hh"
+#include "TrackingAction.hh"
+// #include "SteppingAction.hh"
 
 namespace B1
 {
@@ -51,8 +52,10 @@ void ActionInitialization::Build() const
 
   auto eventAction = new EventAction();
   SetUserAction(eventAction);
-  auto steppingAction = new SteppingAction(eventAction);
-  SetUserAction(steppingAction);
+  // auto steppingAction = new SteppingAction(eventAction);
+  // SetUserAction(steppingAction);
+  auto trackingAction = new TrackingAction(eventAction);
+  SetUserAction(trackingAction);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
