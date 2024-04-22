@@ -63,9 +63,9 @@ if [ $start_step -lt 4 ]; then
 fi
 
 if [ $start_step -lt 5 ]; then
-    echo "Running Tauola tau decay simulation with polarization..."
-    # Run the Tauola tau decay simulation, with polarization
-    ./decay.o ../data/tauola_input_genie_e$energy.dat ../data/tauola_output_genie_e$energy.dat 6 7 8 ../data/genie_pol_e$energy.csv &> ../logfiles/tauola_run_e$energy.log
+    # echo "Running Tauola tau decay simulation with polarization..."
+    # # Run the Tauola tau decay simulation, with polarization
+    # ./decay.o ../data/tauola_input_genie_e$energy.dat ../data/tauola_output_genie_e$energy.dat 6 7 8 ../data/genie_pol_e$energy.csv &> ../logfiles/tauola_run_e$energy.log
 
     echo "Running Tauola tau decay simulation without polarization..."
     # Run the Tauola tau decay simulation, without polarization
