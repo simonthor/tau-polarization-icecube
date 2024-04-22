@@ -21,6 +21,7 @@
 #include "Framework/Utils/PhysUtils.h"
 
 using namespace genie;
+using namespace genie::constants;
 
 // CKM mixing matrix constants
 const double fVud2 = TMath::Power(0.97417, 2.);
@@ -53,7 +54,7 @@ const double fMc = 1.27;
 
 double ScalingVar(double x, double Q2, const double fA, const double fB) {
 // The modified Björken x that is used for BY
-  double a  = TMath::Power( 2*constants::kProtonMass*x, 2 ) / Q2;
+  double a  = TMath::Power( 2*kProtonMass*x, 2 ) / Q2;
   double xw =  2*x*(Q2+fB) / (Q2*(1.+TMath::Sqrt(1+a)) +  2*fA*x);
   return xw;
 }
@@ -343,7 +344,7 @@ std::vector<double> structureFunctions(std::vector<double> pdf_values, double Q2
 
     double a = TMath::Power(bjx,2.) / TMath::Max(Q2val, fLowQ2CutoffF1F2);
     // kNucleonMass2 is a constant from GENIE
-    double c = (1. + 4. * constants::kNucleonMass2 * a) / (1.+r);
+    double c = (1. + 4. * kNucleonMass2 * a) / (1.+r);
 
     fF3 = f * xF3val/bjx;
     fF2 = f * F2val;
@@ -353,7 +354,7 @@ std::vector<double> structureFunctions(std::vector<double> pdf_values, double Q2
   }
   else {
     double a = TMath::Power(x,2.) / TMath::Max(Q2val, fLowQ2CutoffF1F2);
-    double c = (1. + 4. * constants::kNucleonMass2 * a) / (1.+r);
+    double c = (1. + 4. * kNucleonMass2 * a) / (1.+r);
 
     fF3 = f * xF3val / x;
     fF2 = f * F2val;
