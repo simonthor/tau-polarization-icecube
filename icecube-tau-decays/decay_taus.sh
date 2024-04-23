@@ -56,7 +56,7 @@ for energy in "${energy_list[@]}"; do
     input_csv_file=../data/test_genie_NuTau_$energy.0_GeV_particles.csv
     # input_csv_file=../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_particles_extended.csv
     # Define output csv file name
-    output_csv_file=../data/NuTau_$energy.0_GeV_tau.csv
+    output_csv_file=../data/NuTau_$energy.0_GeV_tau_lab_lpol.csv
     # output_csv_file=../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_tau.csv
     # Define Tauola input dat file name
     input_dat_file=../data/NuTau_$energy.0_GeV_tauola_input.dat
@@ -70,6 +70,7 @@ for energy in "${energy_list[@]}"; do
     # Define Tauola output dat file name with full polarization
     output_dat_file_lpol=../data/NuTau_$energy.0_GeV_tauola_output_lpol$file_end.dat
     # output_dat_file_lpol=../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_tauola_output_lpol$file_end.dat
+    # output_dat_file_rpol=../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_tauola_output_rpol$file_end.dat
 
     if [ $start_step -lt 2 ]; then
         echo "Converting GENIE csv file to dat file..."
@@ -80,21 +81,27 @@ for energy in "${energy_list[@]}"; do
     if [ $start_step -lt 3 ]; then
         echo "Running Tauola tau decay simulation with realistic polarization..."
         # Run the Tauola tau decay simulation, with polarization. WARNING: the columns are currently set to 1, 2, 3. If this is not the case, change
-        ./decay.o $input_dat_file $output_dat_file 1 2 3 $output_csv_file $decay_flags &> ../logfiles/icecube_tauola_run_e$energy.log
+        ./decay.o $input_dat_file $output_dat_file 1 2 3 $output_csv_file $decay_flags &> ../logfiles/icecube_tauola_run_e$energy$file_end.log
     fi
 
-    if [ $start_step -lt 4 ]; then
-        echo "Running Tauola tau decay simulation without polarization..."
-        # Run the Tauola tau decay simulation, without polarization
-        ./decay.o $input_dat_file $output_dat_file_nopol 0 0 0 $decay_flags &> ../logfiles/icecube_tauola_run_e${energy}_nopol.log
-    fi
+    # if [ $start_step -lt 4 ]; then
+    #     echo "Running Tauola tau decay simulation without polarization..."
+    #     # Run the Tauola tau decay simulation, without polarization
+    #     ./decay.o $input_dat_file $output_dat_file_nopol 0 0 0 $decay_flags &> ../logfiles/icecube_tauola_run_e${energy}_nopol.log
+    # fi
 
-    if [ $start_step -lt 5 ]; then
-        echo "Running Tauola tau decay simulation with fully left-handed polarization..."
-        # Run the Tauola tau decay simulation, without polarization
-        ./decay.o $input_dat_file $output_dat_file_lpol 0 0 -1 $decay_flags &> ../logfiles/icecube_tauola_run_e${energy}_lpol.log
-    fi
+    # if [ $start_step -lt 5 ]; then
+    #     echo "Running Tauola tau decay simulation with fully left-handed polarization..."
+    #     # Run the Tauola tau decay simulation, without polarization
+    #     ./decay.o $input_dat_file $output_dat_file_lpol 0 0 -1 $decay_flags &> ../logfiles/icecube_tauola_run_e${energy}_lpol.log
+    # fi
     
+    # if [ $start_step -lt 6 ]; then
+    #     echo "Running Tauola tau decay simulation with fully right-handed polarization..."
+    #     # Run the Tauola tau decay simulation, without polarization
+    #     ./decay.o $input_dat_file $output_dat_file_rpol 0 0 1 $decay_flags &> ../logfiles/icecube_tauola_run_e${energy}_rpol.log
+    # fi
+
     # if [ $start_step -lt 6 ]; then
     #     echo "Running Pythia tau decay simulation without polarization..."
     #     # Run the Tauola tau decay simulation, without polarization
@@ -106,4 +113,5 @@ for energy in "${energy_list[@]}"; do
     #     # Run the Tauola tau decay simulation, without polarization
     #     ./pythia_decay.o $output_csv_file ../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_pythia_output_lpol.csv -1 &> ../logfiles/pythia_tau_decays_e${energy}_lpol.log
     # fi
+
 done
