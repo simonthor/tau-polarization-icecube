@@ -201,10 +201,17 @@ int main(int argc, char **argv) {
           Tauola::setBoostRoutine(simpleBoost);
         }
         // Decay the particle with the specified polarization.
-        // TODO I now invert the polarization. This is because for Tauola, polz=1 means left-handed tau or right-handed antitau.
+        // I now invert the polarization. This is because for Tauola, polz=1 means left-handed tau or right-handed antitau.
         // This means that this flip is only valid for tau, not antitau. For antitau, no flip should be done.
-        Tauola::decayOne(htau, true, -pol_vec[0], -pol_vec[1], -pol_vec[2]);
-        break;
+        // A flip should also NOT be done when set_boost is true.
+        if ((p->pdg_id() == -15) || set_boost) {
+          Tauola::decayOne(htau, true, pol_vec[0], pol_vec[1], pol_vec[2]);
+          break;
+        }
+        else {
+          Tauola::decayOne(htau, true, -pol_vec[0], -pol_vec[1], -pol_vec[2]);
+          break;
+        }
       }
     }
     
