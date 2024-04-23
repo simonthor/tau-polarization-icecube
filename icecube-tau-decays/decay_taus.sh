@@ -56,7 +56,7 @@ for energy in "${energy_list[@]}"; do
     input_csv_file=../data/test_genie_NuTau_$energy.0_GeV_particles.csv
     # input_csv_file=../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_particles_extended.csv
     # Define output csv file name
-    output_csv_file=../data/NuTau_$energy.0_GeV_tau_lab_lpol.csv
+    output_csv_file=../data/NuTau_$energy.0_GeV_tau$file_end.csv
     # output_csv_file=../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_tau.csv
     # Define Tauola input dat file name
     input_dat_file=../data/NuTau_$energy.0_GeV_tauola_input.dat
