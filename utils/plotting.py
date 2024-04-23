@@ -4,7 +4,7 @@ import pandas as pd
 
 
 def compare_histos(
-        datasets: dict[str, np.ndarray], bins: dict[str, np.ndarray],  
+        datasets: dict[str, np.ndarray], bins: dict[str, np.ndarray], colors: dict[str, str] = None,  
         density=None, ax=None, errorbar=False, **kwargs):
     """Plot 3 histograms on the same axis."""
     if ax is None:
@@ -17,7 +17,7 @@ def compare_histos(
         if (nan_count := np.isnan(v).sum()) > 0:
             print(f"WARNING: {nan_count} nan values in the dataset {label}")
         
-        values, _, polygons = ax.hist(v, bins=bins, label=label, density=density, histtype="step", lw=2)
+        values, _, polygons = ax.hist(v, bins=bins, label=label, density=density, histtype="step", lw=2, color=colors[label] if colors is not None else None)
         hists[label] = values
         # The error bars should be the sqrt of the number of events in each bin. 
         # If density is used, the error bars should be 
