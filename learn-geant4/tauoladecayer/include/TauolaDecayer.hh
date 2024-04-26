@@ -24,26 +24,36 @@
 // ********************************************************************
 //
 //
-/// \file eventgenerator/pythia/pythia8decayer/include/ActionInitialization.hh
-/// \brief Definition of the ActionInitialization class
 
-#ifndef ActionInitialization_H
-#define ActionInitialization_H 1
+#ifndef TauolaDecayer_H
+#define TauolaDecayer_H
 
-#include "G4VUserActionInitialization.hh"
+#include "G4VExtDecayer.hh"
+#include "globals.hh"
 
-/// Action initialization class.
+#include "Tauola/Tauola.h"
+#include "Tauola/TauolaHEPEVTParticle.h"
+#include "Tauola/TauolaHEPEVTEvent.h"
 
-class ActionInitialization : public G4VUserActionInitialization
+class G4Track;
+class G4DecayProducts;
+
+class TauolaDecayer : public G4VExtDecayer
 {
-  public:
-    ActionInitialization();
-    ~ActionInitialization() override;
+  
+   public:
 
-    // NOTE: NO need to implement BuildForMaster
-    void Build() const override;
+      //ctor & dtor
+      TauolaDecayer();
+      virtual ~TauolaDecayer();
+
+      virtual G4DecayProducts* ImportDecayProducts(const G4Track&);
+
+      void simpleBoost(TauolaParticle*, TauolaParticle*)
+   private:
+      bool boost = false;
 };
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
 #endif
-
-

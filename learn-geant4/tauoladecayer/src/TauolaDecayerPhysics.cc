@@ -24,13 +24,9 @@
 // ********************************************************************
 //
 //
-/// \file eventgenerator/pythia/pythia8decayer/src/Py8DecayerPhysics.cc
-/// \brief Implementation of the Py8DecayerPhysics class
-///
-/// \author J. Yarba; FNAL
 
-#include "Py8DecayerPhysics.hh"
-#include "Py8Decayer.hh"
+#include "TauolaDecayerPhysics.hh"
+#include "TauolaDecayer.hh"
 
 #include "G4ParticleDefinition.hh"
 #include "G4ProcessManager.hh"
@@ -43,31 +39,31 @@
 //
 // register it with contructor factory
 //
-G4_DECLARE_PHYSCONSTR_FACTORY(Py8DecayerPhysics);
+G4_DECLARE_PHYSCONSTR_FACTORY(TauolaDecayerPhysics);
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-Py8DecayerPhysics::Py8DecayerPhysics(G4int)
-  : G4VPhysicsConstructor("Py8DecayerPhysics")
+TauolaDecayerPhysics::TauolaDecayerPhysics(G4int)
+  : G4VPhysicsConstructor("TauolaDecayerPhysics")
 {
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-Py8DecayerPhysics::~Py8DecayerPhysics() 
+TauolaDecayerPhysics::~TauolaDecayerPhysics() 
 {
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void Py8DecayerPhysics::ConstructParticle()
+void TauolaDecayerPhysics::ConstructParticle()
 {
    // Nothing needs to be done here
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void Py8DecayerPhysics::ConstructProcess()
+void TauolaDecayerPhysics::ConstructProcess()
 {
    // Adding external decayer to G4Decay process (per each thread).
    // G4Decay will use the external decayer if G4Decay process is
@@ -75,12 +71,12 @@ void Py8DecayerPhysics::ConstructProcess()
    // have its decay table.
 
    // Loop over all particles instantiated and remove already-assigned
-   // decay table for tau's and B+/- so that they will decay through
-   // the external decayer (Pythia8).
+   // decay table for tau's so that they will decay through
+   // the external decayer (Tauola).
 
    // NOTE: The extDecayer will be deleted in G4Decay destructor
    
-   Py8Decayer* extDecayer = new Py8Decayer();
+   TauolaDecayer* extDecayer = new TauolaDecayer();
    G4bool setOnce = true;
 
    auto particleIterator=GetParticleIterator();
@@ -91,8 +87,7 @@ void Py8DecayerPhysics::ConstructProcess()
 
       // remove native/existing decay table for tau's 
       // so that G4Decay will use the external decayer
-      if ( std::abs(particle->GetPDGEncoding()) == 15 ||
-      std::abs(particle->GetPDGEncoding()) == 521 )
+      if ( std::abs(particle->GetPDGEncoding()) == 15 )
       {
         if ( particle->GetDecayTable() )
         {

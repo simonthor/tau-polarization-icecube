@@ -24,10 +24,6 @@
 // ********************************************************************
 //
 //
-/// \file eventgenerator/pythia/pythia8decayer/src/SingleParticleGun.cc
-/// \brief Implementation of the SingleParticleGun class
-///
-/// \author J. Yarba; FNAL
 
 #include "SingleParticleGun.hh"
 

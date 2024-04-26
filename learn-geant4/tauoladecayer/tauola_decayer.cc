@@ -24,13 +24,12 @@
 // ********************************************************************
 //
 //
-/// \file eventgenerator/pythia/py8decayer/pythia8_decayer.cc
-/// \brief Main program of the pythia8_decayer example
+
 
 #include "G4PhysListFactoryAlt.hh"
 #include "G4PhysListRegistry.hh"
 
-#include "Py8DecayerPhysics.hh"
+#include "TauolaDecayerPhysics.hh"
 
 #include "DetConstruction.hh"
 #include "SingleParticleGun.hh"

@@ -23,35 +23,25 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// 
-/// \file eventgenerator/pythia/pythia8decayer/include/Py8DecayerPhysics
-/// \brief Definition of the Py8DecayerPhysics class
-///
-/// \author J. Yarba; FNAL
-///
+//
 
-#ifndef Py8DecayerPhysics_H
-#define Py8DecayerPhysics_H
+#ifndef ActionInitialization_H
+#define ActionInitialization_H 1
 
-#include "G4VPhysicsConstructor.hh"
-#include "globals.hh"
+#include "G4VUserActionInitialization.hh"
 
-class G4Decay;
+/// Action initialization class.
 
-class Py8DecayerPhysics: public G4VPhysicsConstructor
+class ActionInitialization : public G4VUserActionInitialization
 {
   public:
-    Py8DecayerPhysics(G4int verb=1);
-    virtual ~Py8DecayerPhysics();
+    ActionInitialization();
+    ~ActionInitialization() override;
 
-  protected:
-    // methods
-    // construct particle and physics
-    virtual void ConstructParticle();
-    virtual void ConstructProcess();
-
+    // NOTE: NO need to implement BuildForMaster
+    void Build() const override;
 };
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 #endif
+
+

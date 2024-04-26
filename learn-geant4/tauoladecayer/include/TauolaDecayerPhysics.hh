@@ -23,41 +23,30 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file eventgenerator/pythia/pythia8decayer/src/ActionInitialization.cc
-/// \brief Implementation of the ActionInitialization class
-
-#include "ActionInitialization.hh"
-#include "SingleParticleGun.hh"
 
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+#ifndef TauolaDecayerPhysics_H
+#define TauolaDecayerPhysics_H
 
-ActionInitialization::ActionInitialization()
-   : G4VUserActionInitialization()
-{}
+#include "G4VPhysicsConstructor.hh"
+#include "globals.hh"
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+class G4Decay;
 
-ActionInitialization::~ActionInitialization()
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-
-void ActionInitialization::Build() const
+class TauolaDecayerPhysics: public G4VPhysicsConstructor
 {
+  public:
+    TauolaDecayerPhysics(G4int verb=1);
+    virtual ~TauolaDecayerPhysics();
 
-   // NOTE: one can also set tau+, or B+/- - for all those particles
-   //       Geant4 native decay tables are overriden with Pythia8-bases ones
-   //
-   //                                prt_name prt_mom
-  SetUserAction( new SingleParticleGun("tau-", 25.0) );
+  protected:
+    // methods
+    // construct particle and physics
+    virtual void ConstructParticle();
+    virtual void ConstructProcess();
 
-  return;
-
-}
+};
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-
+#endif

@@ -24,41 +24,38 @@
 // ********************************************************************
 //
 //
-/// \file eventgenerator/pythia/pythia8decayer/include/Py8Decayer.hh
-/// \brief Definition of the Py8Decayer class
-///
-/// \author J. Yarba; FNAL
-///
 
-#ifndef Py8Decayer_H
-#define Py8Decayer_H
+#include "ActionInitialization.hh"
+#include "SingleParticleGun.hh"
 
-#include "G4VExtDecayer.hh"
-#include "globals.hh"
-
-#include "Pythia8/Pythia.h"
-
-class G4Track;
-class G4DecayProducts;
-
-class Py8Decayer : public G4VExtDecayer
-{
-  
-   public:
-
-      //ctor & dtor
-      Py8Decayer();
-      virtual ~Py8Decayer();
-
-      virtual G4DecayProducts* ImportDecayProducts(const G4Track&);
-    
-   private:
-   
-      // data members
-      Pythia8::Pythia* fDecayer;
-
-};
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-#endif
+ActionInitialization::ActionInitialization()
+   : G4VUserActionInitialization()
+{}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+ActionInitialization::~ActionInitialization()
+{}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+
+void ActionInitialization::Build() const
+{
+
+   // NOTE: one can also set tau+, or B+/- - for all those particles
+   //       Geant4 native decay tables are overriden with Tauola-bases ones
+   //
+   //                                prt_name prt_mom
+  SetUserAction( new SingleParticleGun("tau-", 25.0) );
+
+  return;
+
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+

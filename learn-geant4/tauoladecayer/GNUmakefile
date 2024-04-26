@@ -1,7 +1,7 @@
 # --------------------------------------------------------------
 # GNUmakefile for examples module.
 # --------------------------------------------------------------
-name := pythia8_decayer
+name := tauola_decayer
 G4TARGET := $(name)
 G4EXLIB := true
 
@@ -11,14 +11,13 @@ endif
 
 .PHONY: all
 
-ifdef PYTHIA8
+ifdef TAUOLALOCATION
 all: lib bin
   include $(G4INSTALL)/config/binmake.gmk
 
-  INCFLAGS  += -I$(PYTHIA8)/include
-  LDLIBS    += -L$(PYTHIA8)/lib -lpythia8
+  INCFLAGS  += -I$(TAUOLALOCATION)/include
+  LDLIBS    += -L$(TAUOLALOCATION)/lib -lTauolaCxxInterface -lTauolaFortran -lTauolaHEPEVT
 else
 all:
-	@echo 'ERROR - PYTHIA8 not defined in the environment !'
-	@echo '        Tested with Pythia8 release 3.0.5.'
+	@echo 'ERROR - Tauola not defined in the environment !'
 endif
