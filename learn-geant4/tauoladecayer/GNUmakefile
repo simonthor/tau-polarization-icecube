@@ -11,12 +11,12 @@ endif
 
 .PHONY: all
 
-ifdef TAUOLALOCATION
+ifdef Tauola++_DIR
 all: lib bin
   include $(G4INSTALL)/config/binmake.gmk
 
-  INCFLAGS  += -I$(TAUOLALOCATION)/include
-  LDLIBS    += -L$(TAUOLALOCATION)/lib -lTauolaCxxInterface -lTauolaFortran -lTauolaHEPEVT
+  INCFLAGS  += -I$(Tauola++_DIR)/include
+  LDLIBS    += -L$(Tauola++_DIR)/lib -lTauolaCxxInterface -lTauolaFortran -lTauolaHEPEVT
 else
 all:
 	@echo 'ERROR - Tauola not defined in the environment !'

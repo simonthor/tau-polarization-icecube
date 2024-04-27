@@ -49,7 +49,7 @@ class TauolaDecayer : public G4VExtDecayer
 
       virtual G4DecayProducts* ImportDecayProducts(const G4Track&);
 
-      void simpleBoost(TauolaParticle*, TauolaParticle*)
+      static void simpleBoost(Tauolapp::TauolaParticle*, Tauolapp::TauolaParticle*);
    private:
       bool boost = false;
 };

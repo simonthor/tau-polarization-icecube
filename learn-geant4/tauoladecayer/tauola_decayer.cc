@@ -57,7 +57,7 @@ int main(int argc,char** argv)
 {
 
    // pick physics list
-   std::string physListName = "FTFP_BERT+PY8DK";
+   std::string physListName = "FTFP_BERT+TAUDK";
 
    for ( G4int i=1; i<argc; i=i+2 ) {
       G4String g4argv(argv[i]);  // convert only once
@@ -94,7 +94,7 @@ int main(int argc,char** argv)
 
    // set a short name for the plugin
    G4PhysListRegistry* plReg = G4PhysListRegistry::Instance();
-   plReg->AddPhysicsExtension("PY8DK","Py8DecayerPhysics");
+   plReg->AddPhysicsExtension("TAUDK","TauolaDecayerPhysics");
 
    physicsList = plFactory.GetReferencePhysList(physListName);
 
@@ -132,7 +132,7 @@ int main(int argc,char** argv)
 
    // Run event loop (explicitly rather than via BeamOn)
    //
-   for (G4int iev=0; iev<5; ++iev)
+   for (G4int iev=0; iev<10; ++iev)
    {
       runManager->ProcessOneEvent( iev );
    }

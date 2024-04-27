@@ -34,7 +34,7 @@
 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-TauolaDecayer::simpleBoost(TauolaParticle *tau, TauolaParticle *target)
+void TauolaDecayer::simpleBoost(Tauolapp::TauolaParticle *tau, Tauolapp::TauolaParticle *target)
 {
   double p1=tau->getPx();
   double p2=tau->getPy();
@@ -58,11 +58,10 @@ TauolaDecayer::simpleBoost(TauolaParticle *tau, TauolaParticle *target)
 }
 
 TauolaDecayer::TauolaDecayer()
-   : G4VExtDecayer("TauolaDecayer"),
-   fDecayer(nullptr)
+   : G4VExtDecayer("TauolaDecayer")
 {
 
-   Tauola::initialize();
+   Tauolapp::Tauola::initialize();
 
 }
 
@@ -80,7 +79,7 @@ TauolaDecayer::~TauolaDecayer()
 G4DecayProducts* TauolaDecayer::ImportDecayProducts(const G4Track& track)
 {
 
-   TauolaHEPEVTEvent * evt = new TauolaHEPEVTEvent();
+   Tauolapp::TauolaHEPEVTEvent * evt = new Tauolapp::TauolaHEPEVTEvent();
    
    G4DecayProducts* dproducts = nullptr;   
    
@@ -97,7 +96,7 @@ G4DecayProducts* TauolaDecayer::ImportDecayProducts(const G4Track& track)
 
    // NOTE: Energy should be in GeV 
    // TauolaHEPEVTParticle 	( 	int  	pdgid, int status, double px, double py, double pz, double e, double m, int ms, int me, int ds, int de )	
-   TauolaHEPEVTParticle *tau  = new TauolaHEPEVTParticle(pdgid, 1, 
+   Tauolapp::TauolaHEPEVTParticle *tau  = new Tauolapp::TauolaHEPEVTParticle(pdgid, 1, 
                                                          track.GetMomentum().x() / CLHEP::GeV, 
                                                          track.GetMomentum().y() / CLHEP::GeV,  
                                                          track.GetMomentum().z() / CLHEP::GeV,
@@ -108,7 +107,7 @@ G4DecayProducts* TauolaDecayer::ImportDecayProducts(const G4Track& track)
    // If the polarization vector is defined in the lab frame, boost is set to true.
    // NOTE it might have the same effect if this is called only once, instead of before every decay. This is however unclear from the Tauola documentation
    if (boost) {
-      Tauola::setBoostRoutine(simpleBoost);
+      Tauolapp::Tauola::setBoostRoutine(simpleBoost);
    }
    // specify polarization, if any
    // TODO read this from Geant4, from a file, or something. 
@@ -118,7 +117,7 @@ G4DecayProducts* TauolaDecayer::ImportDecayProducts(const G4Track& track)
    double poly = 0.;
    double polz = 0.;
    
-   Tauola::decayOne(tau, 
+   Tauolapp::Tauola::decayOne(tau, 
       true, // This will first undecay the particle and then decay it again. In this case, it should not have an effect if it is true or false, since we manually defined the particle
       polx, poly, polz);
    
@@ -132,10 +131,10 @@ G4DecayProducts* TauolaDecayer::ImportDecayProducts(const G4Track& track)
    // and push into dproducts
    
    // Iterate over the HepEvtEvent to extract all particles except the first one (which is the tau itself)
-
+   G4cout << "Tau decays to ";
    for ( int ip=0; ip<npart_after_decay; ++ip )
    {
-      TauolaHEPEVTParticle* p = evt->getParticle(ip);
+      Tauolapp::TauolaHEPEVTParticle* p = evt->getParticle(ip);
       // only select final state decay products (direct or via subsequent decays);
       // skip all others
       //
@@ -151,13 +150,14 @@ G4DecayProducts* TauolaDecayer::ImportDecayProducts(const G4Track& track)
       if ( !pddec ) {
          G4cout << " Warning: particle with PDG ID " << p->getPdgID() << "could not be found in Geant4\n";
       }
+      G4cout << p->getPdgID() << ", ";
 
-      G4ThreeVector momentum = G4ThreeVector( p->GetPx() * CLHEP::GeV,
-                                              p->GetPy() * CLHEP::GeV,
-                                              p->GetPz() * CLHEP::GeV ); 
+      G4ThreeVector momentum = G4ThreeVector( p->getPx() * CLHEP::GeV,
+                                              p->getPy() * CLHEP::GeV,
+                                              p->getPz() * CLHEP::GeV ); 
       dproducts->PushProducts( new G4DynamicParticle( pddec, momentum) ); 
    }
-   
+   G4cout << "\n";
    return dproducts;
 
 }
