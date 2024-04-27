@@ -49,9 +49,9 @@ TrackingAction::TrackingAction(EventAction* eventAction)
   // Iterate over each line and if the first characters are "energy", split the line at the space and take the second element
   for (std::string line; std::getline(settingsFile, line); ) {
     if (line.substr(0, 8) == "energy: ") {
-      out_filename = "/home/simon/Code/icecube/data/geant4_output_e" + line.substr(8) + ".csv";
+      out_filename = "/home/simon/Code/icecube/data/geant4_output_e" + line.substr(8) + "_tauola.csv";
       energy = std::stod(line.substr(8));
-      tau_out_filename = "/home/simon/Code/icecube/data/geant4_tau_output_e" + line.substr(8) + ".csv";
+      tau_out_filename = "/home/simon/Code/icecube/data/geant4_tau_output_e" + line.substr(8) + "_tauola.csv";
       // G4cout << "Output file: " << out_filename << G4endl;
       break;
     }
