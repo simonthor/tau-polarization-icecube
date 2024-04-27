@@ -29,8 +29,9 @@
 #include "G4PhysListFactoryAlt.hh"
 #include "G4PhysListRegistry.hh"
 
-#include "TauolaDecayerPhysics.hh"
+// #include "TauolaDecayerPhysics.hh"
 
+#include "PhysicsList.hh"
 #include "DetConstruction.hh"
 #include "SingleParticleGun.hh"
 #include "ActionInitialization.hh"
@@ -87,32 +88,33 @@ int main(int argc,char** argv)
    //
    //G4VModularPhysicsList* physicsList = new FTFP_BERT();
    //physicsList->RegisterPhysics(new Py8DecayerPhysics());
+   runManager->SetUserInitialization(new PhysicsList());
 
-   g4alt::G4PhysListFactory plFactory;
-   G4VModularPhysicsList* physicsList = nullptr;
-   plFactory.SetDefaultReferencePhysList("NO_DEFAULT_PHYSLIST");
+   // g4alt::G4PhysListFactory plFactory;
+   // G4VModularPhysicsList* physicsList = nullptr;
+   // plFactory.SetDefaultReferencePhysList("NO_DEFAULT_PHYSLIST");
 
-   // set a short name for the plugin
-   G4PhysListRegistry* plReg = G4PhysListRegistry::Instance();
-   plReg->AddPhysicsExtension("TAUDK","TauolaDecayerPhysics");
+   // // set a short name for the plugin
+   // G4PhysListRegistry* plReg = G4PhysListRegistry::Instance();
+   // plReg->AddPhysicsExtension("TAUDK","TauolaDecayerPhysics");
 
-   physicsList = plFactory.GetReferencePhysList(physListName);
+   // physicsList = plFactory.GetReferencePhysList(physListName);
 
-   if ( ! physicsList ) {
-     PrintAvailable( 1 );
+   // if ( ! physicsList ) {
+   //   PrintAvailable( 1 );
 
-     // if we can't get what the user asked for...
-     //    don't go on to use something else, that's confusing
-     G4ExceptionDescription ed;
-     ed << "The factory for the physicslist [" 
-        << physListName << "] does not exist!" 
-        << G4endl;
-     G4Exception("extensibleFactory",
-                 "extensibleFactory001", FatalException, ed);
-     exit(42);
-   }
+   //   // if we can't get what the user asked for...
+   //   //    don't go on to use something else, that's confusing
+   //   G4ExceptionDescription ed;
+   //   ed << "The factory for the physicslist [" 
+   //      << physListName << "] does not exist!" 
+   //      << G4endl;
+   //   G4Exception("extensibleFactory",
+   //               "extensibleFactory001", FatalException, ed);
+   //   exit(42);
+   // }
 
-   runManager->SetUserInitialization(physicsList);
+   // runManager->SetUserInitialization(physicsList);
    //
    // Set user action classes, e.g. prim.generator (tau- gun), etc.
    // NOTE: setting particle gun (prim. generator) is done in
