@@ -113,9 +113,14 @@ G4DecayProducts* TauolaDecayer::ImportDecayProducts(const G4Track& track)
    // TODO read this from Geant4, from a file, or something. 
    // It is possible to set the polarization of particles in Geant4 (even though it is not used).
    // That might be possible to add in IceTray. Then, one can extract this information and calculate the decays
+
    double polx = 0.;
    double poly = 0.;
    double polz = 0.;
+   // To have a fully left-handed polarization, uncomment the lines below and comment the three lines above
+   // double polx = -tau->getPx() / tau->getP();
+   // double poly = -tau->getPy() / tau->getP();
+   // double polz = -tau->getPz() / tau->getP();
    
    Tauolapp::Tauola::decayOne(tau, 
       true, // This will first undecay the particle and then decay it again. In this case, it should not have an effect if it is true or false, since we manually defined the particle
