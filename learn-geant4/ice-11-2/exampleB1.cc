@@ -72,6 +72,9 @@ int main(int argc,char** argv)
   runManager->SetUserInitialization(new PhysicsList());
 
   // User action initialization
+  // TODO pass command line arguments here into this one, 
+  // such that the input file, output file, and if tau leptons should be stored or not is not hard-coded. 
+  // Should not be too difficult to fix.
   runManager->SetUserInitialization(new ActionInitialization());
 
   // Initialize visualization
