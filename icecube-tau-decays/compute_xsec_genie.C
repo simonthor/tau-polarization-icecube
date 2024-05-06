@@ -57,7 +57,7 @@ int compute_xsec_genie(string input_filename, string output_eventfile, int start
   // Write the header of the event file. Only do this if start_ev == 0
   if (start_ev == 0) {
     event_file.open(output_eventfile);
-    event_file << "event_num,xsec,qelcc,rescc,discc,charm,F1,F2,F3,F4,F5\n";
+    event_file << "event_num,qel,res,dis,sea,hitqrk,xs,Q2s,hitnuc,atom,Mnuc,charm,F1,F2,F3,F4,F5\n";
     event_file.close();
   }
 
@@ -90,27 +90,37 @@ int compute_xsec_genie(string input_filename, string output_eventfile, int start
     bool qelcc = proc.IsQuasiElastic() && proc.IsWeakCC();
     bool rescc = proc.IsResonant() && proc.IsWeakCC();
     bool discc = proc.IsDeepInelastic() && proc.IsWeakCC();
+    
+    const InitialState & init_state = in->InitState();
+    const Target & tgt = init_state.Tgt();
+    
+    bool sea  = tgt.HitSeaQrk();
+    int hitqrk = tgt.HitQrkPdg();
 
+    Kinematics* kinematics = in->KinePtr();
+    kinematics->UseSelectedKinematics();
 
     // Write event information to event file
     event_file.open(output_eventfile, std::ofstream::app);
     event_file << i << ",";
-
-    event_file << event.XSec() << "," << qelcc << "," << rescc << "," << discc << "," << xclsv.IsCharmEvent();
+    // Set number of decimal places to 16
+    event_file.precision(16);
+    
+    event_file << (qelcc ? "True" : "False") << "," << (rescc ? "True" : "False") << "," << (discc ? "True" : "False") << "," 
+      << (sea ? "True" : "False") << "," << hitqrk << "," 
+      << kinematics->x() << "," << kinematics->Q2() << "," 
+      << tgt.HitNucPdg() << "," << tgt.A() << "," << tgt.HitNucP4().M() << "," << (xclsv.IsCharmEvent() ? "True" : "False");
 
     if (proc.IsDeepInelastic() && proc.IsWeakCC()) {
-      Kinematics* kinematics = in->KinePtr();
-      kinematics->UseSelectedKinematics();
       // Print kinematics object (not its pointer)
       // LOG("main", pINFO) << *kinematics << "\n";
-
       fDISSF->Calculate(in);
       event_file << "," << fDISSF->F1() << "," << fDISSF->F2() << "," << fDISSF->F3() << "," << fDISSF->F4() << "," << fDISSF->F5();
     }
 
     event_file << "\n";
     event_file.close();
-    
+
     // clear current mc event record
     mcrec->Clear();
 
