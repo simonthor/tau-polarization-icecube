@@ -44,6 +44,10 @@ find_path(Tauola++_INCLUDE_DIR Tauola/Tauola.h
 set(Tauola++_INCLUDE_DIRS ${Tauola++_INCLUDE_DIR})
 mark_as_advanced(Tauola++_INCLUDE_DIR)
 
+# Make a variable that contains all compiler flags related to Tauola++
+set(Tauola++_LIBRARIES ${Tauola++_CxxInterface_LIBRARY} ${Tauola++_Fortran_LIBRARY} ${Tauola++_HEPEVT_LIBRARY})
+mark_as_advanced(Tauola++_LIBRARIES)
+
 # handle the QUIETLY and REQUIRED arguments and set Tauola++_FOUND to TRUE if
 # all listed variables are TRUE
 if (Tauola++_FOUND)
