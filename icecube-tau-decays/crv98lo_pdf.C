@@ -41,7 +41,7 @@ int crv98lo_pdf(std::string input_file, std::string output_file) {
 
     // Identify the index where the value is "x" and "Q2"
     while (std::getline(s, word, ',')) {
-        std::cout << word << std::endl;
+        // std::cout << word << std::endl;
         if (word == "xs") {
             xcol = index;
         } else if (word == "Q2s") {
