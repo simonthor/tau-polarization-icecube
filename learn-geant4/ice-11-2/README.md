@@ -34,10 +34,17 @@ PhysicsList::PhysicsList() {
 }
 // your existing code...
 ```
-4. Add the file [FindTauola++.cmake](./FindTauola++.cmake) to your CMake module path, and add the line `find_package(Tauola++ REQUIRED)` to your CMakeLists.txt file (I have not managed to get this to work).
-5. If the above step does not work, copy the content of [FindTauola++.cmake](./FindTauola++.cmake) to your CMakeLists.txt file instead.
-6. In CMakeLsits.txt, there should be a line where `target_link_libraries()` is called. In it, add  `${Tauola++_LIBRARIES}`. E.g. `target_link_libraries(exampleB1 ${Geant4_LIBRARIES})` becomes `target_link_libraries(exampleB1 ${Geant4_LIBRARIES}  ${Tauola++_LIBRARIES})`.
-7. Compile the Geant4 application using `cmake ... -DTauola++_DIR="path/to/Tauola/"`, where ... is replaced by all command line arguments that is usually passed to cmake when compiling this specific application.
+
+To make your application find Tauola, there are a few different ways to do this.
+
+The easiest way is to edit one line in your `CMakeLists.txt` file. Find the line with `target_link_libraries(...)` and inside the parentheses and append `-lTauolaCxxInterface -lTauolaFortran -lTauolaHEPEVT -I${Tauola++_DIR}/include -L${Tauola++_DIR}/lib`. For example, For example, `target_link_libraries(exampleB1 ${Geant4_LIBRARIES})` becomes `target_link_libraries(exampleB1 ${Geant4_LIBRARIES} -lTauolaCxxInterface -lTauolaFortran -lTauolaHEPEVT -I${Tauola++_DIR}/include -L${Tauola++_DIR}/lib)`.
+
+The other option is to add [FindTauola++.cmake](./FindTauola++.cmake) to your CMake module path, and add the line `find_package(Tauola++ REQUIRED)` to your CMakeLists.txt file close to the top.
+Then, in CMakeLsits.txt, add  `${Tauola++_LIBRARIES}` to `target_link_libraries`. E.g. `target_link_libraries(exampleB1 ${Geant4_LIBRARIES})` becomes `target_link_libraries(exampleB1 ${Geant4_LIBRARIES}  ${Tauola++_LIBRARIES})`. This is more robust for various ways in which people have installed Tauola. However, I have not gotten this to work.
+
+If none of the above step does not work, copy the content of [FindTauola++.cmake](./FindTauola++.cmake) to your CMakeLists.txt file.
+
+Finally, compile the Geant4 application using `cmake ... -DTauola++_DIR="path/to/Tauola/"`, where ... is replaced by all command line arguments that is usually passed to cmake when compiling this specific application.
 
 These are the only changes needed. After this, one can compile and run the Geant4 application as usual (i.e. using `make`). All $\tau$ leptons should now be decayed using Tauola.
 

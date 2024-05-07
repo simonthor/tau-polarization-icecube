@@ -6,6 +6,6 @@
 /process/verbose 0
 /process/em/verbose 0
 # Change the default number of threads (in multi-threaded mode)
-#/run/numberOfThreads 4
+/run/numberOfThreads 1
 /run/initialize
 /run/beamOn 154398
