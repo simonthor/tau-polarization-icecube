@@ -112,8 +112,11 @@ int compute_xsec_genie(string input_filename, string output_eventfile, int start
       << tgt.HitNucPdg() << "," << tgt.A() << "," << tgt.HitNucP4().M() << "," << (xclsv.IsCharmEvent() ? "True" : "False");
 
     if (proc.IsDeepInelastic() && proc.IsWeakCC()) {
-      // Print kinematics object (not its pointer)
-      // LOG("main", pINFO) << *kinematics << "\n";
+
+      if (i < 10) {
+        LOG("myAnalysis", pNOTICE) << *in << "\n";
+      }
+
       fDISSF->Calculate(in);
       event_file << "," << fDISSF->F1() << "," << fDISSF->F2() << "," << fDISSF->F3() << "," << fDISSF->F4() << "," << fDISSF->F5();
     }
