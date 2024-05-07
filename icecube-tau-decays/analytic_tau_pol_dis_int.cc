@@ -106,9 +106,22 @@ int analytic_tau_pol_dis_int(std::string input_file, std::string output_file) {
   while (std::getline(file, line)) {
     std::stringstream s(line);
     index = 0;
+
+
     while (std::getline(s, word, ',')) {
+      // if (event_num == 21) {
+      //   LOG("myAnalysis", pINFO) << word;
+      // }
+      if (index == discol) {
+        // Set dis to True or False
+        dis = word == "True";
+        if (!dis) {
+          break;
+        }
+      }
+
       if (index == xcol) {
-          x = std::stod(word);
+        x = std::stod(word);
       } else if (index == ycol) {
           y = std::stod(word);
       } else if (index == Q2col) {
@@ -116,13 +129,13 @@ int analytic_tau_pol_dis_int(std::string input_file, std::string output_file) {
       } else if (index == Wcol) {
           W = std::stod(word);
       } else if (index == nuc_pdgcol) {
+          // LOG("myAnalysis", pINFO) << "hitnuc" << word;
           nuc_pdgc = std::stoi(word);
-      } else if (index == discol) {
-          // Set dis to True or False
-          dis = word == "True";
       } else if (index == Acol) {
+          // LOG("myAnalysis", pINFO) << "atom" << word;
           A = std::stoi(word);
       } else if (index == hitqrkcol) {
+          // LOG("myAnalysis", pINFO) << "hitqrk" << word;
           hitqrk = std::stoi(word);
       } else if (index == seacol) {
           sea = word == "True";
@@ -145,12 +158,11 @@ int analytic_tau_pol_dis_int(std::string input_file, std::string output_file) {
       }
       index++;
     }
-    
     if (!dis) {
       ofile << line << ",,,,,\n";
       continue;
     }
-
+    
     // Create ProcInfo object
     ProcessInfo proc_info(kScDeepInelastic, kIntWeakCC);
     if (!proc_info.IsDeepInelastic() || !proc_info.IsWeakCC()) {
@@ -186,10 +198,10 @@ int analytic_tau_pol_dis_int(std::string input_file, std::string output_file) {
     kine->SetW(W, true);
     
     kine->UseSelectedKinematics();
-    
-    if (event_num < 10) {
-      LOG("myAnalysis", pINFO) << interaction;
-    }
+    // LOG("myAnalysis", pINFO) << event_num;
+    // if (event_num < 10) {
+    //   LOG("myAnalysis", pINFO) << interaction;
+    // }
 
     // Compute structure functions
     fDISSF->Calculate(&interaction);
