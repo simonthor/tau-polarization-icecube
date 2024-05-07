@@ -31,7 +31,7 @@ done
 if [ $start_step -lt 2 ]; then  
     echo "Running GENIE event generation..."
     # Run gevgen with the energy as the incoming neutrino energy, the number of events, the run number, and the pdg code as the incoming neutrino PDG
-    gevgen -n $genie_n_events -p $pdg -e $energy -r $run --cross-sections ../data/gxspl-NUsmall.xml --seed 2024 -t "1000080160[0.9],1000010010[0.1]" --tune G21_11a_00_000 > "genie_run_e${energy}.log"
+    gevgen -n $genie_n_events -p $pdg -e $energy -r $run --cross-sections ../data/gxspl-NUsmall.xml --seed 2024 -t "1000080160[0.9],1000010010[0.1]" --tune G21_11a_00_000 &> "../logfiles/genie_run_e${energy}.log"
     # Move the output file, named gntp.${run}.ghep.root, to the ../data directory
     mv gntp.${run}.ghep.root ../data
 fi
