@@ -76,7 +76,8 @@ int analytic_tau_pol_res_int(std::string input_file, std::string output_file) {
 
   // our xsec calculator
   BergerSehgalRESPXSec2014* xsecCalculator = new BergerSehgalRESPXSec2014();
-  // Might be better to use Pauli blocking. Not quite sure. Maybe it is just a thing that affects the cross section, and not the polarization.
+  // Might be better to use Pauli blocking. Probably no difference because this happens after the sigpp, sigmm calculations
+  // TODO try turning it on and off and compare outputs
   xsecCalculator->Configure("NoPauliBlock");
 
   //   const BergerSehgalRESPXSec2014* xsecCalculator = ;
