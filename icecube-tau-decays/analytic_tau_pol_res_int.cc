@@ -151,7 +151,7 @@ int analytic_tau_pol_res_int(std::string input_file, std::string output_file) {
       index++;
     }
     if (!res) {
-      ofile << line << ",,,,,\n";
+      ofile << line << ",,\n";
       continue;
     }
     
