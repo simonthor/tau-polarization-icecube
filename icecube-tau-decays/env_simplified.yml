@@ -1,0 +1,31 @@
+name: g4
+channels:
+  - defaults
+dependencies:
+  - afterimage
+  - binutils
+  - clhep=2.4.6.2
+  - cmake
+  - cxx-compiler
+  - expat
+  - fortran-compiler
+  - gsl
+  - lhapdf
+  - libexpat
+  - libjpeg-turbo
+  - libpng
+  - libxml2
+  - log4cpp
+  - openssl
+  - python
+  - tbb
+  - xorg-libx11
+  - xorg-libxext
+  - xorg-libxft
+  - xorg-libxpm
+  - pcre
+  - xrootd
+  - clad
+  - glib
+  - tauloa
+prefix: /home/simon/miniconda3/envs/g4
