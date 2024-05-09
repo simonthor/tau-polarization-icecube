@@ -21,6 +21,8 @@
 #include "Framework/ParticleData/PDGCodes.h"
 #include "Framework/Utils/CmdLnArgParser.h"
 #include "Physics/DeepInelastic/XSection/BYStrucFunc.h"
+#include "Physics/Resonance/XSection/BergerSehgalRESPXSec2014.h"
+
 
 using std::string;
 using namespace genie;
@@ -57,7 +59,7 @@ int compute_xsec_genie(string input_filename, string output_eventfile, int start
   // Write the header of the event file. Only do this if start_ev == 0
   if (start_ev == 0) {
     event_file.open(output_eventfile);
-    event_file << "event_num,qel,res,dis,sea,hitqrk,xs,Q2s,hitnuc,atom,Mnuc,charm,F1,F2,F3,F4,F5\n";
+    event_file << "event_num,qel,res,dis,sea,hitqrk,xs,Q2s,hitnuc,atom,Mnuc,charm,resid,F1,F2,F3,F4,F5,sigmm,sigpp\n";
     event_file.close();
   }
 
@@ -70,6 +72,9 @@ int compute_xsec_genie(string input_filename, string output_eventfile, int start
   DISStructureFunc* fDISSF = new DISStructureFunc();
 
   fDISSF->SetModel(fDISSFModel); // <-- attach algorithm
+  
+  BergerSehgalRESPXSec2014* resXSecCalculator = new BergerSehgalRESPXSec2014();
+  resXSecCalculator->Configure("NoPauliBlock");
   
   //
   // Loop over all events
@@ -109,18 +114,24 @@ int compute_xsec_genie(string input_filename, string output_eventfile, int start
     event_file << (qelcc ? "True" : "False") << "," << (rescc ? "True" : "False") << "," << (discc ? "True" : "False") << "," 
       << (sea ? "True" : "False") << "," << hitqrk << "," 
       << kinematics->x() << "," << kinematics->Q2() << "," 
-      << tgt.HitNucPdg() << "," << tgt.A() << "," << tgt.HitNucP4().M() << "," << (xclsv.IsCharmEvent() ? "True" : "False");
+      << tgt.HitNucPdg() << "," << tgt.A() << "," << tgt.HitNucP4().M() << "," << (xclsv.IsCharmEvent() ? "True" : "False") << "," << xclsv.Resonance();
 
-    if (proc.IsDeepInelastic() && proc.IsWeakCC()) {
+    if (discc) {
 
       if (i < 10) {
-        LOG("myAnalysis", pNOTICE) << *in << "\n";
+        LOG("DISInt", pNOTICE) << *in << "\n";
       }
 
       fDISSF->Calculate(in);
-      event_file << "," << fDISSF->F1() << "," << fDISSF->F2() << "," << fDISSF->F3() << "," << fDISSF->F4() << "," << fDISSF->F5();
+      event_file << "," << fDISSF->F1() << "," << fDISSF->F2() << "," << fDISSF->F3() << "," << fDISSF->F4() << "," << fDISSF->F5() << ",,";
     }
-
+    else if (rescc) {
+      event_file << ",,,,,,";
+      resXSecCalculator->XSec(in, kPSWQ2fE);
+      std::vector<double> sigs = resXSecCalculator->GetSigs();
+      event_file << sigs[0] << "," << sigs[1];
+    }
+    
     event_file << "\n";
     event_file.close();
 
