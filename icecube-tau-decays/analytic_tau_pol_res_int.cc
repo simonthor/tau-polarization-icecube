@@ -13,7 +13,7 @@
 #include "Framework/Conventions/Constants.h"
 #include "Framework/Interaction/Interaction.h"
 #include "Physics/Resonance/XSection/BergerSehgalRESPXSec2014.h"
-// #include "geni.h"
+
 
 using namespace genie;
 
