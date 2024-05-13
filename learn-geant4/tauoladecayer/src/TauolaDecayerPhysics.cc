@@ -93,6 +93,7 @@ void TauolaDecayerPhysics::ConstructProcess()
             // if ( particle->GetDecayTable() ) {
             delete particle->GetDecayTable();
             particle->SetDecayTable(nullptr);
+            
             if(setOnce)
             // One G4Decay object is shared by all unstable particles (per thread).
             // Thus, we set the external decayer only once.
