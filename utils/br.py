@@ -3,7 +3,8 @@ import pandas as pd
 
 
 def branching_ratios(decay_products: pd.DataFrame) -> dict[tuple[int], float]:
-    """Compute branching ratios for the decay products of the tau lepton."""
+    """Compute branching ratios for the decay products of the tau lepton.
+    NOTE: the input dataframe should only contain decay products, no taus, incoming neutrinos etc."""
     n_taus = decay_products.query("pdg == 16").shape[0]
     n_anti_taus = decay_products.query("pdg == -16").shape[0]
     c = Counter(tuple(sorted(a.tolist())) for i, a in decay_products.groupby("event_num")["pdg"])
