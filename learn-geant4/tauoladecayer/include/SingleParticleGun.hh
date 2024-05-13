@@ -42,7 +42,7 @@ class SingleParticleGun : public G4VUserPrimaryGeneratorAction
    public:
 
       //ctor & dtor
-      SingleParticleGun( const G4String&, const double );
+      SingleParticleGun( const G4int, const double );
       ~SingleParticleGun();
 
       // methods/functions

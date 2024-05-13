@@ -44,7 +44,7 @@ G4_DECLARE_PHYSCONSTR_FACTORY(TauolaDecayerPhysics);
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 TauolaDecayerPhysics::TauolaDecayerPhysics(G4int)
-  : G4VPhysicsConstructor("TauolaDecayerPhysics")
+    : G4VPhysicsConstructor("TauolaDecayerPhysics")
 {
 }
 
@@ -65,63 +65,56 @@ void TauolaDecayerPhysics::ConstructParticle()
 
 void TauolaDecayerPhysics::ConstructProcess()
 {
-   // Adding external decayer to G4Decay process (per each thread).
-   // G4Decay will use the external decayer if G4Decay process is
-   // assigned to an unstable particle and that particle does not
-   // have its decay table.
+    // Adding external decayer to G4Decay process (per each thread).
+    // G4Decay will use the external decayer if G4Decay process is
+    // assigned to an unstable particle and that particle does not
+    // have its decay table.
 
-   // Loop over all particles instantiated and remove already-assigned
-   // decay table for tau's so that they will decay through
-   // the external decayer (Tauola).
+    // Loop over all particles instantiated and remove already-assigned
+    // decay table for tau's so that they will decay through
+    // the external decayer (Tauola).
 
-   // NOTE: The extDecayer will be deleted in G4Decay destructor
-   
-   TauolaDecayer* extDecayer = new TauolaDecayer();
-   G4bool setOnce = true;
+    // NOTE: The extDecayer will be deleted in G4Decay destructor
 
-   auto particleIterator=GetParticleIterator();
-   particleIterator->reset();
-   while ((*particleIterator)())
-   {    
-      G4ParticleDefinition* particle = particleIterator->value();
+    TauolaDecayer* extDecayer = new TauolaDecayer();
+    G4bool setOnce = true;
 
-      // remove native/existing decay table for tau's 
-      // so that G4Decay will use the external decayer
-      if ( std::abs(particle->GetPDGEncoding()) == 15 )
-      {
-        if ( particle->GetDecayTable() )
+    auto particleIterator=GetParticleIterator();
+    particleIterator->reset();
+
+    while ((*particleIterator)())
+    {    
+        G4ParticleDefinition* particle = particleIterator->value();
+
+        // remove native/existing decay table for tau's 
+        // so that G4Decay will use the external decayer
+        if ( std::abs(particle->GetPDGEncoding()) == 15 )
         {
-          delete particle->GetDecayTable();
-          particle->SetDecayTable(nullptr);
-/*
-          if ( verboseLevel > 1 ) {
-             G4cout << "Use ext decayer for: " 
-                <<  particleIterator->value()->GetParticleName()
-                << G4endl;
-          } 
-*/    
-        }
-      }
+            // if ( particle->GetDecayTable() ) {
+            delete particle->GetDecayTable();
+            particle->SetDecayTable(nullptr);
+            if(setOnce)
+            // One G4Decay object is shared by all unstable particles (per thread).
+            // Thus, we set the external decayer only once.
+            {
+                G4ProcessManager* pmanager = particle->GetProcessManager();    
+                G4ProcessVector* processVector = pmanager->GetProcessList();
+                for ( size_t i=0; i<processVector->length(); ++i ) 
+                {    
+                    G4Decay* decay = dynamic_cast<G4Decay*>((*processVector)[i]);
+                    if ( decay ) 
+                    {
+                        decay->SetExtDecayer(extDecayer);
+                        setOnce = false;
+                    }
+                }
+            }
+            // }
 
-      if(setOnce)
-      // One G4Decay object is shared by all unstable particles (per thread).
-      // Thus, we set the external decayer only once.
-      {
-        G4ProcessManager* pmanager = particle->GetProcessManager();    
-        G4ProcessVector* processVector = pmanager->GetProcessList();
-        for ( size_t i=0; i<processVector->length(); ++i ) 
-        {    
-           G4Decay* decay = dynamic_cast<G4Decay*>((*processVector)[i]);
-           if ( decay ) 
-           {
-             decay->SetExtDecayer(extDecayer);
-             setOnce = false;
-           }
         }
-      }              
-   }
+    }
 
-   return;
+    return;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

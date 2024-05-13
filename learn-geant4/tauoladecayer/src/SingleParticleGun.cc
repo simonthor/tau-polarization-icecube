@@ -40,7 +40,7 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-SingleParticleGun::SingleParticleGun( const G4String& pname, const double pmom )
+SingleParticleGun::SingleParticleGun( const G4int pname, const double pmom )
    : G4VUserPrimaryGeneratorAction(),
      fGun(nullptr),
      fMomentum(pmom)

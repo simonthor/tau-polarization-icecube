@@ -81,15 +81,15 @@ G4DecayProducts* TauolaDecayer::ImportDecayProducts(const G4Track& track)
 
    Tauolapp::TauolaHEPEVTEvent * evt = new Tauolapp::TauolaHEPEVTEvent();
    
-   G4DecayProducts* dproducts = nullptr;   
    
    G4ParticleDefinition* pd = track.GetDefinition();
    int    pdgid   = pd->GetPDGEncoding();
    
+   G4DecayProducts* dproducts = new G4DecayProducts(*(track.GetDynamicParticle()));
    // check if pdgid is a tau or ant-tau
    if ( pdgid != 15 && pdgid != -15 )
    {
-      G4cout << " Particle of pdgid = " << pdgid 
+      G4cout << "ERROR Particle of pdgid = " << pdgid 
              << " is NOT a tau or anti-tau" << G4endl;
       return dproducts;
    }
@@ -125,7 +125,6 @@ G4DecayProducts* TauolaDecayer::ImportDecayProducts(const G4Track& track)
    
    // create & fill up decay products
    //
-   dproducts = new G4DecayProducts(*(track.GetDynamicParticle()));
    
    // create G4DynamicParticle out of each fDecayer->event entry (except the 1st one)
    // and push into dproducts

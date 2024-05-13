@@ -50,7 +50,7 @@ void ActionInitialization::Build() const
    //       Geant4 native decay tables are overriden with Tauola-bases ones
    //
    //                                prt_name prt_mom
-  SetUserAction( new SingleParticleGun("tau-", 25.0) );
+  SetUserAction( new SingleParticleGun(4122, 25.0) );
 
   return;
 
