@@ -125,11 +125,7 @@ G4DecayProducts* TauolaDecayer::ImportDecayProducts(const G4Track& track)
       polx, poly, polz);
    
    int npart_after_decay = evt->getParticleCount();
-   
-   // create & fill up decay products
-   //
-   dproducts = new G4DecayProducts(*(track.GetDynamicParticle()));
-   
+      
    // create G4DynamicParticle out of each fDecayer->event entry (except the 1st one)
    // and push into dproducts
    
