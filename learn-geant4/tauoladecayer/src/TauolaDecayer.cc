@@ -92,8 +92,8 @@ G4DecayProducts* TauolaDecayer::ImportDecayProducts(const G4Track& track)
    // This should at least be more accurate than assuming that the particle disappears.
    if ( pdgid != 15 && pdgid != -15 )
    {
-      // G4cout << "ERROR Particle of pdgid = " << pdgid 
-      //        << " is NOT a tau or anti-tau" << G4endl;
+      G4cerr << "ERROR Particle of pdgid = " << pdgid 
+             << " is NOT a tau or anti-tau" << G4endl;
       dproducts->PushProducts(
          new G4DynamicParticle(
             pd, 

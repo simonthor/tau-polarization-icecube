@@ -6,7 +6,7 @@
 #include "G4EmStandardPhysics.hh"
 #include "TauolaDecayerPhysics.hh"
 // #include "G4RadioactiveDecayPhysics.hh"
-// #include "G4HadronPhysicsFTFP_BERT.hh"
+#include "G4HadronPhysicsFTFP_BERT.hh"
 // #include "G4EmExtraPhysics.hh"
 // #include "G4NeutrinoPhysics.hh"
 
@@ -16,6 +16,7 @@ PhysicsList::PhysicsList()
   RegisterPhysics(new G4DecayPhysics());
   // RegisterPhysics(new G4RadioactiveDecayPhysics());
   RegisterPhysics(new G4EmStandardPhysics());
+  RegisterPhysics(new G4HadronPhysicsFTFP_BERT());
   RegisterPhysics(new TauolaDecayerPhysics());
   // RegisterPhysics(new G4HadronPhysicsFTFP_BERT());
   // RegisterPhysics(new G4NeutrinoPhysics());

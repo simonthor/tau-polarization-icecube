@@ -85,10 +85,23 @@ G4DecayProducts* TauolaDecayer::ImportDecayProducts(const G4Track& track)
    
    G4DecayProducts* dproducts = new G4DecayProducts(*(track.GetDynamicParticle()));
    // check if pdgid is a tau or ant-tau
+   // If not, just return the particle as is as if it did not decay
+   // NOTE: I am not sure if this is what Geant4 does by default, or if it just makes the particle disappear. 
+   // This should at least be more accurate than assuming that the particle disappears.
    if ( pdgid != 15 && pdgid != -15 )
    {
-      G4cout << "ERROR Particle of pdgid = " << pdgid 
+      G4cerr << "ERROR Particle of pdgid = " << pdgid 
              << " is NOT a tau or anti-tau" << G4endl;
+      dproducts->PushProducts(
+         new G4DynamicParticle(
+            pd, 
+            G4ThreeVector(
+               track.GetMomentum().x(), 
+               track.GetMomentum().y(), 
+               track.GetMomentum().z()
+            )
+         )
+      );
       return dproducts;
    }
 
