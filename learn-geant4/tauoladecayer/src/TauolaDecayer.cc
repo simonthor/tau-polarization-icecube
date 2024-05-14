@@ -81,7 +81,8 @@ G4DecayProducts* TauolaDecayer::ImportDecayProducts(const G4Track& track)
 
    Tauolapp::TauolaHEPEVTEvent * evt = new Tauolapp::TauolaHEPEVTEvent();
    
-   
+   G4cout << "Tauola decayer is called\n";
+
    G4ParticleDefinition* pd = track.GetDefinition();
    int    pdgid   = pd->GetPDGEncoding();
    

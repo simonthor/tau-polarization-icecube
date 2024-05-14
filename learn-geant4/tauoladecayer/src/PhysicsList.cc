@@ -17,7 +17,7 @@ PhysicsList::PhysicsList()
   // RegisterPhysics(new G4RadioactiveDecayPhysics());
   RegisterPhysics(new G4EmStandardPhysics());
   // RegisterPhysics(new G4HadronPhysicsFTFP_BERT());
-  // RegisterPhysics(new TauolaDecayerPhysics());
+  RegisterPhysics(new TauolaDecayerPhysics());
   // RegisterPhysics(new G4HadronPhysicsFTFP_BERT());
   // RegisterPhysics(new G4NeutrinoPhysics());
 }
