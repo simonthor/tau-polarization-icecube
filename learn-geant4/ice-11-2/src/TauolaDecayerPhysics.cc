@@ -44,7 +44,7 @@ G4_DECLARE_PHYSCONSTR_FACTORY(TauolaDecayerPhysics);
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 TauolaDecayerPhysics::TauolaDecayerPhysics(G4int)
-  : G4VPhysicsConstructor("TauolaDecayerPhysics")
+    : G4VPhysicsConstructor("TauolaDecayerPhysics")
 {
 }
 
@@ -65,63 +65,62 @@ void TauolaDecayerPhysics::ConstructParticle()
 
 void TauolaDecayerPhysics::ConstructProcess()
 {
-   // Adding external decayer to G4Decay process (per each thread).
-   // G4Decay will use the external decayer if G4Decay process is
-   // assigned to an unstable particle and that particle does not
-   // have its decay table.
+    // Setting external decayer to tau leptons.
+    // G4Decay will use the external decayer if G4Decay process is
+    // assigned to an unstable particle and that particle does not
+    // have its decay table.
 
-   // Loop over all particles instantiated and remove already-assigned
-   // decay table for tau's so that they will decay through
-   // the external decayer (Tauola).
+    // Loop over all particles instantiated and remove already-assigned
+    // decay table for tau's so that they will decay through
+    // the external decayer (Tauola).
 
-   // NOTE: The extDecayer will be deleted in G4Decay destructor
-   
-   TauolaDecayer* extDecayer = new TauolaDecayer();
-   G4bool setOnce = true;
+    // NOTE: The extDecayer will be deleted in G4Decay destructor
 
-   auto particleIterator=GetParticleIterator();
-   particleIterator->reset();
-   while ((*particleIterator)())
-   {    
-      G4ParticleDefinition* particle = particleIterator->value();
+    // Define a new G4Decay object with an external decayer that will be assigned to the tau leptons
+    TauolaDecayer* extDecayer = new TauolaDecayer();
+    G4Decay* theDecayProcess = new G4Decay();
+    theDecayProcess->SetExtDecayer(extDecayer);
 
-      // remove native/existing decay table for tau's 
-      // so that G4Decay will use the external decayer
-      if ( std::abs(particle->GetPDGEncoding()) == 15 )
-      {
-        if ( particle->GetDecayTable() )
+    // Iterate over all particles defined in Geant4
+    auto particleIterator=GetParticleIterator();
+    particleIterator->reset();
+
+    while ((*particleIterator)())
+    {    
+        G4ParticleDefinition* particle = particleIterator->value();
+        
+        // If the particle is a tau lepton, remove its decay table and original decay process
+        if ( std::abs(particle->GetPDGEncoding()) == 15 )
         {
-          delete particle->GetDecayTable();
-          particle->SetDecayTable(nullptr);
-/*
-          if ( verboseLevel > 1 ) {
-             G4cout << "Use ext decayer for: " 
-                <<  particleIterator->value()->GetParticleName()
-                << G4endl;
-          } 
-*/    
+            G4cout << "found particle " << particle->GetPDGEncoding() << "\n";
+            particle->SetDecayTable(0);
+            
+            // Iterate over all processes via the process manager to find the decay process and remove it
+            // The decay process is a shared object by all unstable particles without a defined decay table
+            // Setting the external decayer on that object will therefore set the external decayer for all
+            // unstable particles without decay tables, which is not what we want.
+            G4ProcessManager *pmanager = particle->GetProcessManager();
+            G4ProcessVector *pros = pmanager->GetProcessList();
+            for (int i=0; i<pros->size(); ++i) {
+                if ((*pros)[i]->GetProcessType() == fDecay) {
+                    // G4cout << "Removing original decay process from " << particle->GetPDGEncoding() << "\n";
+                    pmanager->RemoveProcess(i);
+                    break;
+                }
+            }
+            
+            // Since we have removed the original decay process from the tau, we can now set a new one, 
+            // which has an external decayer
+            // G4cout << "Adding new decay process to " << particle->GetPDGEncoding() << "\n";
+            pmanager->AddProcess(theDecayProcess);
+            // idxPostStep and idxAtRest are global values in Geant4 that specify when the process should be used
+            // For decays, idxPostStep and idxAtRest are the values that should be set (see https://github.com/strigazi/athena/blob/7057be3e1a6d385fbca8d043fd9ab02a9780fae6/Simulation/G4Extensions/RHadrons/src/RHadronsPhysicsTool.cxx#L208)
+            pmanager->SetProcessOrdering(theDecayProcess, idxPostStep);
+            pmanager->SetProcessOrdering(theDecayProcess, idxAtRest);
         }
-      }
+    }
 
-      if(setOnce)
-      // One G4Decay object is shared by all unstable particles (per thread).
-      // Thus, we set the external decayer only once.
-      {
-        G4ProcessManager* pmanager = particle->GetProcessManager();    
-        G4ProcessVector* processVector = pmanager->GetProcessList();
-        for ( size_t i=0; i<processVector->length(); ++i ) 
-        {    
-           G4Decay* decay = dynamic_cast<G4Decay*>((*processVector)[i]);
-           if ( decay ) 
-           {
-             decay->SetExtDecayer(extDecayer);
-             setOnce = false;
-           }
-        }
-      }              
-   }
-
-   return;
+    return;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
