@@ -27,6 +27,7 @@
 
 #include "ActionInitialization.hh"
 #include "SingleParticleGun.hh"
+#include "TrackingAction.hh"
 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -50,7 +51,9 @@ void ActionInitialization::Build() const
    //       Geant4 native decay tables are overriden with Tauola-bases ones
    //
    //                                prt_name prt_mom
-  SetUserAction( new SingleParticleGun(4122, 25.0) );
+  int pdg_id = 4122;
+  SetUserAction( new SingleParticleGun(pdg_id, 25.0) );
+  SetUserAction(new TrackingAction(pdg_id));
 
   return;
 
