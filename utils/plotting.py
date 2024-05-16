@@ -58,6 +58,9 @@ def plot_histograms(
         ncols=len(d1), 
         # nrows=2, 
         figsize=(4*len(d1), 4), layout="constrained")
+    
+    if len(d1) == 1:
+        axs = [axs]
 
     for i, (e, ax) in enumerate(zip(d1, axs)):
         b = bins[e]
