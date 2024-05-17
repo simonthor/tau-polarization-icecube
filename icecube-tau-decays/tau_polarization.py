@@ -381,16 +381,13 @@ def main():
     for e in neutrino_energies:
         # Load files
         particle_info = pd.read_csv(f"../data/test_genie_NuTau_{e}.0_GeV_particles.csv")
-        event_info = pd.read_csv(f"../data/test_genie_NuTau_{e}.0_GeV_event_info_pdf.csv")
+        event_info = pd.read_csv(f"../data/test_genie_NuTau_{e}.0_GeV_event_info_sig.csv")
         all_event_infos[e] = event_info
         
         pols = pd.DataFrame() # columns=["polx", "poly", "polz", "event_num"]
         
         for int_type in ("qel", "dis"):
-            if int_type.find("_") != -1:
-                int_type_col = int_type.split("_")[0]
-            else:
-                int_type_col = int_type
+            int_type_col = int_type
 
             # Select qel, res and dis particles
             events = event_info[event_info[int_type_col]]
