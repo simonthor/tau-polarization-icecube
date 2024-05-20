@@ -15,7 +15,7 @@
 using namespace genie;
 
 
-int crv98lo_pdf(std::string input_file, std::string output_file, bool charm_correction = false) {
+int grv98lo_pdf(std::string input_file, std::string output_file, bool charm_correction = false) {
     BYPDF * bypdf = new BYPDF();
     bypdf->Configure("Default");
 
