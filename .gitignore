@@ -212,3 +212,4 @@ TAUOLA/
 *.gz
 learn-achilles/SHERPA-MC-2.2.12/
 learn-achilles/Achilles-0.2.1/
+.vscode/
