@@ -451,7 +451,7 @@ def calc_pol(particle_info, event_info):
 
         new_pols = pd.DataFrame({"event_num": selected_taus["event_num"], "polx": pol_vec.px, "poly": pol_vec.py, "polz": pol_vec.pz})
             
-            # Concatenate the data with the pols dataframe
+        # Concatenate the data with the pols dataframe
         pols = pd.concat([pols, new_pols])
         
         # Fill in the missing polarizations with 0, i.e. assume that they are unpolarized.
