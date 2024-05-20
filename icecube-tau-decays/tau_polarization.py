@@ -17,7 +17,8 @@ def polarization_vector(
         x: np.ndarray = None, 
         W: np.ndarray = None, 
         charm: np.ndarray = None, 
-        pdfvalues: pd.DataFrame = None):
+        pdfvalues: pd.DataFrame = None,
+        res_sigs: pd.DataFrame = None):
     """Calculate the polarization vector of the tau lepton that is produced in neutrino-nucleon scattering.
     
     The formulas are based on Hagiwara et al. (https://arxiv.org/abs/hep-ph/0305324) for most of the equations
@@ -36,12 +37,17 @@ def polarization_vector(
         charm: Whether a charm quark is produced in the interaction or not.
             Only used for DIS interactions.
             Must be an array of bools that is the same size as the 4-vectors. 
-        pdfvalues: The PDF values for the specific neutrino-nucleus interaction. 
+        pdfvalues: The PDF values for the specific neutrino-nucleus interaction.
             Only used for DIS interactions.
             Must be some kind of map from the quark PDG ID (all values from -6 to 6, excluding 0). 
             Can e.g. be a pandas dataframe with the columns being the PDG ID and the rows being the values for each event, 
             or a dict with keys being the PDG IDs and the values being arrays containing the PDF values for each event.
-    
+        res_sigs: The resonance partial differential cross sections for the specific neutrino-nucleus interaction.
+            Only used for RES interactions.
+            Must be some kind of map from the keys "sigmm", "sigpp", "sigmp" to arrays.
+            Can e.g. be a pandas dataframe with the columns being "sigmm", "sigpp", "sigmp" and the rows being the values for each event, 
+            or a dict with keys being "sigmm", "sigpp", "sigmp" and the values being arrays containing the partial cross sections for each event.
+
     Returns:
         A tuple of two arrays, the first being the transverse polarization component, and the second being the longitudinal polarization component.
 
@@ -58,6 +64,9 @@ def polarization_vector(
         
         Currently, only tau leptons are supported, not anti-tau leptons. In theory, this change should be relatively simple to implement, 
         with only some changes to this function and not the rest of the code.
+
+        Also note that the resonance scattering calculations do not use the structure functions at all. 
+        Instead, almost all calculations must have been done before-hand using GENIE.
     """
     # Define variables that are used and based on the 4-momenta
     # The same naming convention as in Hagiwara et al. is used
@@ -91,7 +100,12 @@ def polarization_vector(
         W5 = W5qel(x, Q2, p, q, M)
     
     elif int_type == "res":
-        raise NotImplementedError("Resonance scattering is not implemented yet")
+        return (
+            # transverse polarization component
+            (res_sigs["sigmp"] + res_sigs["sigmp"]) / (res_sigs["sigpp"] + res_sigs["sigmm"]).values, 
+            # longitudinal polarization
+            (res_sigs["sigpp"] - res_sigs["sigmm"]) / (res_sigs["sigpp"] + res_sigs["sigmm"]).values
+        )
         
     elif int_type == "dis":
         if charm is None:
@@ -396,7 +410,7 @@ def calc_pol(particle_info, event_info):
     """Calculate the tau polarization for the given event information and particle information."""
     pols = pd.DataFrame() # columns=["polx", "poly", "polz", "event_num"]
         
-    for int_type in ("qel", "dis"):
+    for int_type in ("qel", "res", "dis"):
         int_type_col = int_type
 
             # Select qel, res and dis particles
@@ -418,8 +432,12 @@ def calc_pol(particle_info, event_info):
         nucleon4m = vector.array({"E": events["En"], "px": events["pxn"], "py": events["pyn"], "pz": events["pzn"]})
 
         df = None
+        res_sigs = None
+
         if int_type == "dis":
             df = get_pdf_values(events)
+        elif int_type == "res":
+            res_sigs = events.loc[:, ["sigmm", "sigpp", "sigmp"]]
             
             # Rotate all vectors such that the nucleon is at rest
         nutau4m_rotated, nucleon4m_rotated, tau4m_rotated = boost_rotated_4m(nutau4m, nucleon4m, tau4m)
@@ -433,6 +451,7 @@ def calc_pol(particle_info, event_info):
                 W=W,
                 charm=events["charm"].values,
                 pdfvalues=df,
+                res_sigs=res_sigs
             ))
 
             # Transfer the polarization vector to the lab frame
