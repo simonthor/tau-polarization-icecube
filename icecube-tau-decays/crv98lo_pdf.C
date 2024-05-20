@@ -15,7 +15,7 @@
 using namespace genie;
 
 
-int crv98lo_pdf(std::string input_file, std::string output_file) {
+int crv98lo_pdf(std::string input_file, std::string output_file, bool charm_correction = false) {
     BYPDF * bypdf = new BYPDF();
     bypdf->Configure("Default");
 
@@ -38,11 +38,12 @@ int crv98lo_pdf(std::string input_file, std::string output_file) {
     int index = 0;
     
     int xcol, Q2col, nuc_pdgcol, discol;
+    std::string xcol_name = charm_correction ? "xs" : "xi";
 
     // Identify the index where the value is "x" and "Q2"
     while (std::getline(s, word, ',')) {
         // std::cout << word << std::endl;
-        if (word == "xs") {
+        if (word == xcol_name) {
             xcol = index;
         } else if (word == "Q2s") {
             Q2col = index;
