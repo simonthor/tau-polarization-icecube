@@ -80,7 +80,6 @@ for energy in "${energy_list[@]}"; do
         # Run python script to convert the file into a dat file, and generate a csv file with only the tau leptons 
         python convert_genie.py -i $input_csv_file -od $input_dat_file
     fi
-    continue
     
     if [ $start_step -lt 3 ]; then
         echo "Preparing the file for calculating the polarization..."
