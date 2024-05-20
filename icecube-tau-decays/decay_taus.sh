@@ -13,7 +13,6 @@ echo "Reading tauola_settings.yaml..."
 energy_list=()
 inside_energy_list=0
 start_step=0
-decay_flags=""
 while IFS= read -r line; do
     echo $line
     if [[ $line == "energy:" ]]; then
@@ -30,17 +29,10 @@ while IFS= read -r line; do
     elif [[ $line == start_step* ]]; then
         start_step=$(echo $line | cut -d' ' -f2)
         echo "Set start step"
-    elif [[ $line == "rad: off" ]]; then
-        decay_flags="-r $decay_flags"
-    elif [[ $line == "boost: on" ]]; then
-        decay_flags="-b $decay_flags"
     fi
 done < tauola_settings.yaml
-
-# Remove the last character from decay_flags, if it is not empty
-if [[ ${#decay_flags} -gt 0 ]]; then
-    decay_flags=${decay_flags::-1}
-fi
+    
+decay_flags="-b"
 
 echo "Energy list: ${energy_list[@]}"
 echo "inside_energy_list: $inside_energy_list"
