@@ -54,9 +54,12 @@ file_end=$(echo $decay_flags | tr -d ' ')
 for energy in "${energy_list[@]}"; do
     # Define input csv file name
     input_csv_file=../data/test_genie_NuTau_$energy.0_GeV_particles.csv
+    input_csv_event_file=../data/test_genie_NuTau_$energy.0_GeV_event_info.csv
+    preprocessed_csv_event_file=../data/test_genie_NuTau_${energy}.0_GeV_event_info_dis.csv
+    taupol_input_file=../data/test_genie_NuTau_${energy}.0_GeV_event_info_sig.csv
     # input_csv_file=../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_particles_extended.csv
     # Define output csv file name
-    output_csv_file=../data/NuTau_$energy.0_GeV_tau$file_end.csv
+    output_csv_file=../data/NuTau_$energy.0_GeV_tau.csv
     # output_csv_file=../data/test_bare_lepton_toy_Tau_000005_${energy}.0_GeV_tau.csv
     # Define Tauola input dat file name
     input_dat_file=../data/NuTau_$energy.0_GeV_tauola_input.dat
@@ -75,26 +78,49 @@ for energy in "${energy_list[@]}"; do
     if [ $start_step -lt 2 ]; then
         echo "Converting GENIE csv file to dat file..."
         # Run python script to convert the file into a dat file, and generate a csv file with only the tau leptons 
-        python convert_genie.py -i $input_csv_file -od $input_dat_file -oc $output_csv_file
+        python convert_genie.py -i $input_csv_file -od $input_dat_file
+    fi
+    continue
+    
+    if [ $start_step -lt 3 ]; then
+        echo "Preparing the file for calculating the polarization..."
+        python preprocess_event_info.py -ip $input_csv_file -ie $input_csv_event_file -o $preprocessed_csv_event_file
+        # Calculate the GRV98LO PDF values for each DIS event from x and Q^2
+        #  This adds 6 new columns: fuv, fus, fdv, fds, fs, fc
+        #  Each column corresponds to the PDF value for the event for the valence up quark, sea up quark, valence down quark, sea down quark, strange quark, and charm quark respectively.
+        #  These are used for the polarization calculations
+        #  When the last input argument is true, the charm-corrected x value is used, as described in Hagiwara et al. (2003). This is the default.
+        genie -l -b -q "grv98lo_pdf.C(\"${preprocessed_csv_event_file}\",\"../data/test_genie_NuTau_${energy}.0_GeV_event_info_pdf.csv\",true)"
+        # Calculate the Sigma values of for RES events using the Berger-Sehgal model
+        #  This adds two new columns: sigmm, sigpp
+        #  The longitudinal polarization is then given by (sigmm - sigpp) / (sigmm + sigpp)
+        #  The goal is to also add a way of calculating the transverse polarization, but this seems a bit more complicated
+        #  as it is not relevant for the GENIE cross section calculations, and therefore not implemented in the library.
+        genie -l -b -q "analytic_tau_pol_res_int.C(\"../data/test_genie_NuTau_${energy}.0_GeV_event_info_pdf.csv\",\"${taupol_input_file}\")"
     fi
 
-    if [ $start_step -lt 3 ]; then
+    if [ $start_step -lt 4 ]; then
+        echo "Calculating tau polarization for all events..."
+        python tau_polarization.py -ip $input_csv_file -ie $taupol_input_file -o $output_csv_file
+    fi
+
+    if [ $start_step -lt 5 ]; then
         echo "Running Tauola tau decay simulation with realistic polarization..."
-        # Run the Tauola tau decay simulation, with polarization. WARNING: the columns are currently set to 1, 2, 3. If this is not the case, change
+        # Run the Tauola tau decay simulation, with polarization. The columns are currently set to 1, 2, 3, as given as output from tau_polarization.py
         ./decay.o $input_dat_file $output_dat_file 1 2 3 $output_csv_file $decay_flags &> ../logfiles/icecube_tauola_run_e$energy$file_end.log
     fi
 
-    # if [ $start_step -lt 4 ]; then
-    #     echo "Running Tauola tau decay simulation without polarization..."
-    #     # Run the Tauola tau decay simulation, without polarization
-    #     ./decay.o $input_dat_file $output_dat_file_nopol 0 0 0 $decay_flags &> ../logfiles/icecube_tauola_run_e${energy}_nopol.log
-    # fi
+    if [ $start_step -lt 6 ]; then
+        echo "Running Tauola tau decay simulation without polarization..."
+        # Run the Tauola tau decay simulation, without polarization
+        ./decay.o $input_dat_file $output_dat_file_nopol 0 0 0 $decay_flags &> ../logfiles/icecube_tauola_run_e${energy}_nopol.log
+    fi
 
-    # if [ $start_step -lt 5 ]; then
-    #     echo "Running Tauola tau decay simulation with fully left-handed polarization..."
-    #     # Run the Tauola tau decay simulation, without polarization
-    #     ./decay.o $input_dat_file $output_dat_file_lpol 0 0 -1 $decay_flags &> ../logfiles/icecube_tauola_run_e${energy}_lpol.log
-    # fi
+    if [ $start_step -lt 7 ]; then
+        echo "Running Tauola tau decay simulation with fully left-handed polarization..."
+        # Run the Tauola tau decay simulation, without polarization
+        ./decay.o $input_dat_file $output_dat_file_lpol 0 0 -1 $decay_flags &> ../logfiles/icecube_tauola_run_e${energy}_lpol.log
+    fi
     
     # if [ $start_step -lt 6 ]; then
     #     echo "Running Tauola tau decay simulation with fully right-handed polarization..."

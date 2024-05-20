@@ -3,6 +3,7 @@ import vector
 import pandas as pd
 import itertools
 import warnings
+from argparse import ArgumentParser
 
 # Tau mass
 mtau = 1.77682 # GeV
@@ -54,6 +55,9 @@ def polarization_vector(
             - The neutrino is pointing in the +z direction
         If they are not, one must use boost_rotated_4m to change the reference frame.
         See main() for an example of how this is done (it is relatively simple).
+        
+        Currently, only tau leptons are supported, not anti-tau leptons. In theory, this change should be relatively simple to implement, 
+        with only some changes to this function and not the rest of the code.
     """
     # Define variables that are used and based on the 4-momenta
     # The same naming convention as in Hagiwara et al. is used
@@ -371,7 +375,7 @@ def get_pdf_values(dis_events):
     return pdfvalues
 
 
-def main():
+def calculate_pol_all():
     """Calculate the polarization vector for all simulated IceCube events."""
     neutrino_energies = (5, 10, 20, 50, 100)
     
@@ -381,40 +385,46 @@ def main():
     for e in neutrino_energies:
         # Load files
         particle_info = pd.read_csv(f"../data/test_genie_NuTau_{e}.0_GeV_particles.csv")
-        event_info = pd.read_csv(f"../data/test_genie_NuTau_{e}.0_GeV_event_info_pdf.csv")
-        all_event_infos[e] = event_info
+        event_info = pd.read_csv(f"../data/test_genie_NuTau_{e}.0_GeV_event_info_sig.csv")
+    
+        pols = calc_pol(all_event_infos, e)
         
-        pols = pd.DataFrame() # columns=["polx", "poly", "polz", "event_num"]
+        all_pols[e] = pols
+    
+
+def calc_pol(particle_info, event_info):
+    """Calculate the tau polarization for the given event information and particle information."""
+    pols = pd.DataFrame() # columns=["polx", "poly", "polz", "event_num"]
         
-        for int_type in ("qel", "dis"):
-            int_type_col = int_type
+    for int_type in ("qel", "dis"):
+        int_type_col = int_type
 
             # Select qel, res and dis particles
-            events = event_info[event_info[int_type_col]]
+        events = event_info[event_info[int_type_col]]
 
-            particles = particle_info[
+        particles = particle_info[
                 particle_info["event_num"]
                 .isin(events.loc[events[int_type_col], "event_num"].values)
             ]
 
-            selected_taus = particles[particles["pdg"] == 15]
-            selected_nus = particles.groupby("event_num").nth(1)
+        selected_taus = particles[particles["pdg"] == 15]
+        selected_nus = particles.groupby("event_num").nth(1)
 
-            tau4m = vector.array({"E": selected_taus["E"], "px": selected_taus["px"], "py": selected_taus["py"], "pz": selected_taus["pz"]})
-            nutau4m = vector.array({"E": selected_nus["E"], "px": selected_nus["px"], "py": selected_nus["py"], "pz": selected_nus["pz"]})
+        tau4m = vector.array({"E": selected_taus["E"], "px": selected_taus["px"], "py": selected_taus["py"], "pz": selected_taus["pz"]})
+        nutau4m = vector.array({"E": selected_nus["E"], "px": selected_nus["px"], "py": selected_nus["py"], "pz": selected_nus["pz"]})
 
-            x = events["xs"].values
-            W = events["Ws"].values
-            nucleon4m = vector.array({"E": events["En"], "px": events["pxn"], "py": events["pyn"], "pz": events["pzn"]})
+        x = events["xs"].values
+        W = events["Ws"].values
+        nucleon4m = vector.array({"E": events["En"], "px": events["pxn"], "py": events["pyn"], "pz": events["pzn"]})
 
-            df = None
-            if int_type == "dis":
-                df = get_pdf_values(events)
+        df = None
+        if int_type == "dis":
+            df = get_pdf_values(events)
             
             # Rotate all vectors such that the nucleon is at rest
-            nutau4m_rotated, nucleon4m_rotated, tau4m_rotated = boost_rotated_4m(nutau4m, nucleon4m, tau4m)
+        nutau4m_rotated, nucleon4m_rotated, tau4m_rotated = boost_rotated_4m(nutau4m, nucleon4m, tau4m)
 
-            s = np.array(polarization_vector(
+        s = np.array(polarization_vector(
                 tau4m_rotated,
                 nutau4m_rotated,
                 nucleon4m_rotated,
@@ -429,43 +439,56 @@ def main():
             # s[1] should be along the tau momentum direction.
             # Project the first component of the polarization vector onto the plane of the tau lepton and the neutrino
             # The second component should be in the tau neutrino-tau lepton plane, orthogonal to the tau and the tau-tau neutrino plane normal
-            pol_l = vector.MomentumNumpy3D(tau4m) * s[1] / tau4m.p
-            transverse_direction = vector.MomentumNumpy3D(nutau4m).cross(vector.MomentumNumpy3D(tau4m)).cross(vector.MomentumNumpy3D(tau4m))
-            pol_t = transverse_direction * s[0] / transverse_direction.p
-            pol_vec = pol_l + pol_t
+        pol_l = vector.MomentumNumpy3D(tau4m) * s[1] / tau4m.p
+        transverse_direction = vector.MomentumNumpy3D(nutau4m).cross(vector.MomentumNumpy3D(tau4m)).cross(vector.MomentumNumpy3D(tau4m))
+        pol_t = transverse_direction * s[0] / transverse_direction.p
+        pol_vec = pol_l + pol_t
             # Check that the longitudinal and transverse components are orthogonal
-            assert np.allclose(pol_l.dot(pol_t), 0)
+        assert np.allclose(pol_l.dot(pol_t), 0)
             # Check that the angle between the tau momentum and the polarization vector is the same as theta_p
-            close_angles = np.isclose(tau4m.deltaangle(pol_vec), np.arccos(s[1] / np.linalg.norm(s, axis=0)))
-            assert np.all(close_angles | (s[0] == 0)), (tau4m.deltaangle(pol_vec)[~close_angles], np.arccos(s[1] / np.linalg.norm(s, axis=0))[~close_angles])
+        close_angles = np.isclose(tau4m.deltaangle(pol_vec), np.arccos(s[1] / np.linalg.norm(s, axis=0)))
+        assert np.all(close_angles | (s[0] == 0)), (tau4m.deltaangle(pol_vec)[~close_angles], np.arccos(s[1] / np.linalg.norm(s, axis=0))[~close_angles])
 
-            new_pols = pd.DataFrame({"event_num": selected_taus["event_num"], "polx": pol_vec.px, "poly": pol_vec.py, "polz": pol_vec.pz})
+        new_pols = pd.DataFrame({"event_num": selected_taus["event_num"], "polx": pol_vec.px, "poly": pol_vec.py, "polz": pol_vec.pz})
             
             # Concatenate the data with the pols dataframe
-            pols = pd.concat([pols, new_pols])
+        pols = pd.concat([pols, new_pols])
         
         # Fill in the missing polarizations with 0, i.e. assume that they are unpolarized.
-        events_not_in_pols = event_info.loc[~event_info["event_num"].isin(pols["event_num"].values), "event_num"].unique()
+    events_not_in_pols = event_info.loc[~event_info["event_num"].isin(pols["event_num"].values), "event_num"].unique()
         
         # TODO for other interactions (which in practice is just coherent scattering), we assume unpolarized (or fully left-handed is a better approximation perhaps?)
-        pols = pd.concat([pols, pd.DataFrame({"event_num": events_not_in_pols, "polx": np.zeros(events_not_in_pols.shape[0]), "poly": np.zeros(events_not_in_pols.shape[0]), "polz": np.zeros(events_not_in_pols.shape[0])})])
-        print(f"Incoming neutrino energy: {e} GeV")
-        if events_not_in_pols.shape[0] > 0:
-            print(events_not_in_pols.shape[0], "events are not qel, res or dis")
+    pols = pd.concat([pols, pd.DataFrame({"event_num": events_not_in_pols, "polx": np.zeros(events_not_in_pols.shape[0]), "poly": np.zeros(events_not_in_pols.shape[0]), "polz": np.zeros(events_not_in_pols.shape[0])})])
+    
+    if events_not_in_pols.shape[0] > 0:
+        print(events_not_in_pols.shape[0], "events are not qel, res or dis")
         
-        print("Fraction of events with norm > 1:", (np.linalg.norm(pols[["polx", "poly", "polz"]], axis=1) > 1).sum() / pols.shape[0])
+    print("Fraction of events with norm > 1:", (np.linalg.norm(pols[["polx", "poly", "polz"]], axis=1) > 1).sum() / pols.shape[0])
         
         # Fill up nan values. In practice, this should never happen
-        if pols["polz"].isnull().any():
-            print("Number of NaN values:", pols["polz"].isnull().sum())
-            pols = pols.fillna(0)
+    if pols["polz"].isnull().any():
+        print("Number of NaN values:", pols["polz"].isnull().sum())
+        pols = pols.fillna(0)
             
-        pols = pols.sort_values("event_num")
-        
-        all_pols[e] = pols
+    pols = pols.sort_values("event_num")
+    
+    return pols
 
-        # uncomment this once I am confident that the code works
-        # pols.to_csv(f"../data/NuTau_{e}.0_GeV_tau-b.csv", index=False)
+
+def main():
+    """Calculate tau polarization for one set of events, with the event and particle info file names given as input via the command line.
+    Then create a new file containing the tau polarization information and tau leptons.
+    """
+    argparser = ArgumentParser()
+    argparser.add_argument("-ip", type=str, required=True)  # Input particle info file name
+    argparser.add_argument("-ie", type=str, required=True)  # Output particle info file name
+    argparser.add_argument("-o", type=str, required=True)  # Output file name for csv file
+    
+    args = argparser.parse_args()
+
+    particle_info = pd.read_csv(args.ip)
+    event_info = pd.read_csv(args.ie)
+    calc_pol(particle_info, event_info).to_csv(args.o, index=False)
 
 
 if __name__ == "__main__":

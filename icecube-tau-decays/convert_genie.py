@@ -44,7 +44,7 @@ def main():
     argparser = ArgumentParser()
     argparser.add_argument("-i", type=str, required=True)  # Input file name
     argparser.add_argument("-od", type=str, required=True)  # Output file name for dat file
-    argparser.add_argument("-oc", type=str, required=True)  # Output file name for csv file
+    argparser.add_argument("-oc", type=str, required=False, default=None)  # Output file name for csv file
     argparser.add_argument("--write-nevents", action="store_true", default=False)  # Write the number of events to the settings file (default: False)
     
     args = argparser.parse_args()
@@ -92,10 +92,11 @@ def main():
             evt.event_number = event_num
             f.write(evt)
 
-    # %% [markdown]
-    # Save polarization in a separate file
-
     # %%
+    # If no output csv file is given, we don't need to do anything more
+    if output_csv is None:
+        return
+    
     # Open the file with decays and tau leptons, only select the lines with tau leptons and copy those to a new file
     with open(input_filename, "r") as f:
         with open(output_csv, "w") as f2:
