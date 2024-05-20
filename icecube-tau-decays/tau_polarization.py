@@ -381,7 +381,7 @@ def main():
     for e in neutrino_energies:
         # Load files
         particle_info = pd.read_csv(f"../data/test_genie_NuTau_{e}.0_GeV_particles.csv")
-        event_info = pd.read_csv(f"../data/test_genie_NuTau_{e}.0_GeV_event_info_sig.csv")
+        event_info = pd.read_csv(f"../data/test_genie_NuTau_{e}.0_GeV_event_info_pdf.csv")
         all_event_infos[e] = event_info
         
         pols = pd.DataFrame() # columns=["polx", "poly", "polz", "event_num"]
@@ -406,8 +406,10 @@ def main():
             x = events["xs"].values
             W = events["Ws"].values
             nucleon4m = vector.array({"E": events["En"], "px": events["pxn"], "py": events["pyn"], "pz": events["pzn"]})
-        
-            df = get_pdf_values(events)
+
+            df = None
+            if int_type == "dis":
+                df = get_pdf_values(events)
             
             # Rotate all vectors such that the nucleon is at rest
             nutau4m_rotated, nucleon4m_rotated, tau4m_rotated = boost_rotated_4m(nutau4m, nucleon4m, tau4m)
