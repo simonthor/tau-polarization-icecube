@@ -85,7 +85,7 @@ int analytic_tau_pol_res_int(std::string input_file, std::string output_file) {
   
   // Open output file and write header to it
   std::ofstream ofile(output_file);
-  ofile << line << ",sigmm,sigpp" << std::endl;
+  ofile << line << ",sigmm,sigpp,sigmp" << std::endl;
   
   double x, y, Q2val, W, En, pxn, pyn, pzn, Enu, pxnu, pynu, pznu;
   int nuc_pdgc, A, hitqrk;
@@ -209,7 +209,7 @@ int analytic_tau_pol_res_int(std::string input_file, std::string output_file) {
     std::vector<double> sigs = xsecCalculator->GetSigs();
 
     // Write to output file
-    ofile << line << "," << sigs[0] << "," << sigs[1] << std::endl;
+    ofile << line << "," << sigs[0] << "," << sigs[1] << "," << sigs[2] << std::endl;
     ++event_num;
   }
 
