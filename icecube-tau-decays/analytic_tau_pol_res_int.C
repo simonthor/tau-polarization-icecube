@@ -154,8 +154,7 @@ int analytic_tau_pol_res_int(std::string input_file, std::string output_file) {
       ofile << line << ",,\n";
       continue;
     }
-    // TODO combine this with analytic_tau_pol_dis_int.cc
-    
+
     // Create ProcInfo object
     ProcessInfo proc_info(kScResonant, kIntWeakCC);
     if (!proc_info.IsResonant() || !proc_info.IsWeakCC()) {
@@ -163,10 +162,10 @@ int analytic_tau_pol_res_int(std::string input_file, std::string output_file) {
     }
 
     // Create InitialState object
-    // TODO read this from file instead
     int Z = (A == 16) ? 8 : 1;
-    int nu_pdg = 16;
     Target tgt(Z, A);
+    // TODO read this from file instead
+    int nu_pdg = 16;
 
     InitialState init_state(tgt, nu_pdg);
     
