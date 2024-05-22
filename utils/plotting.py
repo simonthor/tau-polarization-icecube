@@ -8,9 +8,7 @@ def compare_histos(
         density=None, ax=None, errorbar=False, **kwargs):
     """Plot 3 histograms on the same axis."""
     if ax is None:
-        fig, ax = plt.subplots(figsize=(5, 4), layout="constrained")
-    else:
-        fig = ax.get_figure()
+        _, ax = plt.subplots(figsize=(5, 4), layout="constrained")
 
     hists = {}
     for label, v in datasets.items():
@@ -49,18 +47,21 @@ def filter_events(decay_products: pd.DataFrame, col: str, filter_func: callable,
 
 def plot_histograms(
     datasets: dict[str, dict[int, pd.DataFrame]], /, *,
-    bins: dict[int, np.ndarray], filter_func: callable, plot_func: callable, title_label: str = "$E_\\nu = {e}$ GeV", **kwargs):
+    bins: dict[int, np.ndarray], filter_func: callable, plot_func: callable, title_label: str = "$E_\\nu = {e}$ GeV", axs: list[plt.Axes] = None, **kwargs):
     """Plot several subplots, each one containing three histograms. 
     Different subplots correspond to different keys in the dicts (typically incoming neutrino energy)."""
     
     d1 = list(datasets.values())[0]
-    fig, axs = plt.subplots(
-        ncols=len(d1), 
-        # nrows=2, 
-        figsize=(4*len(d1), 4), layout="constrained")
+    if axs is None:
+        fig, axs = plt.subplots(
+            ncols=len(d1), 
+            # nrows=2, 
+            figsize=(4*len(d1), 4), layout="constrained")
+        if len(d1) == 1:
+            axs = [axs]
+    else:
+        fig = axs[0].get_figure()
     
-    if len(d1) == 1:
-        axs = [axs]
 
     for i, (e, ax) in enumerate(zip(d1, axs)):
         b = bins[e]
