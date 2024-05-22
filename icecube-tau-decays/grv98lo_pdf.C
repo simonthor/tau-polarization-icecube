@@ -25,8 +25,6 @@ int grv98lo_pdf(std::string input_file, std::string output_file, bool charm_corr
     PDF* fPDF =  new PDF();
     fPDF->SetModel(pdf_model);
 
-    // Source: https://github.com/GENIE-MC/Generator/blob/1817b89cf815c0694c187f874288f1c1be1e712a/config/GRV98LO.xml#L11
-    const double fQ2min = 0.800;
     // Charm mass, in GeV, according to Wikipedia
     const double fMc = 1.27;
     
@@ -89,8 +87,7 @@ int grv98lo_pdf(std::string input_file, std::string output_file, bool charm_corr
         // Reset PDF
         fPDF->Reset();
         // Calculate PDF at (x, Q2)
-        double Q2pdf =  TMath::Max(Q2, fQ2min);
-        fPDF->Calculate(x, Q2pdf);
+        fPDF->Calculate(x, Q2);
         
         double fuv =  fPDF  -> UpValence();
         double fus   = fPDF  -> UpSea();
