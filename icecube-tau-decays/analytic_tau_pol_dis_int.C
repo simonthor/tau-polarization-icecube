@@ -18,7 +18,7 @@
 using namespace genie;
 
 
-int analytic_tau_pol_dis_int(std::string input_file, std::string output_file) {  
+int analytic_tau_pol_dis_int(std::string input_file, std::string output_file, bool use_hitqrk = false) {  
   // Open input file, and read the first line. 
   std::ifstream file(input_file);
   std::string line, word;
@@ -96,6 +96,7 @@ int analytic_tau_pol_dis_int(std::string input_file, std::string output_file) {
   
   // Open output file and write header to it
   std::ofstream ofile(output_file);
+  
   ofile << line << ",F1,F2,F3,F4,F5" << std::endl;
   
   double x, y, Q2val, W, En, pxn, pyn, pzn, Enu, pxnu, pynu, pznu;
@@ -187,7 +188,9 @@ int analytic_tau_pol_dis_int(std::string input_file, std::string output_file) {
     tgt_ptr->SetHitNucPdg(nuc_pdgc);
     TLorentzVector nucleon4m(pxn, pyn, pzn, En);
     tgt_ptr->SetHitNucP4(nucleon4m);
-    tgt_ptr->SetHitQrkPdg(hitqrk);
+    if (use_hitqrk) {
+        tgt_ptr->SetHitQrkPdg(hitqrk);
+    }
     tgt_ptr->SetHitSeaQrk(sea);
 
     Kinematics* kine = interaction.KinePtr();
