@@ -76,12 +76,16 @@ for energy in "${energy_list[@]}"; do
     if [ $start_step -lt 3 ]; then
         echo "Preparing the file for calculating the polarization..."
         python preprocess_event_info.py -ip $input_csv_file -ie $input_csv_event_file -o $preprocessed_csv_event_file
+        
+        # Calculate the form factors F1 - F5 using the GENIE library
+        #  This adds five new columns: F1, F2, F3, F4, F5
+        genie -l -b -q "analytic_tau_pol_dis_int.C(\"${preprocessed_csv_event_file}\",\"../data/test_genie_NuTau_${energy}.0_GeV_event_info_f.csv\",false)"
         # Calculate the GRV98LO PDF values for each DIS event from x and Q^2
         #  This adds 6 new columns: fuv, fus, fdv, fds, fs, fc
         #  Each column corresponds to the PDF value for the event for the valence up quark, sea up quark, valence down quark, sea down quark, strange quark, and charm quark respectively.
         #  These are used for the polarization calculations
         #  When the last input argument is true, the charm-corrected x value is used, as described in Hagiwara et al. (2003). This is the default.
-        genie -l -b -q "grv98lo_pdf.C(\"${preprocessed_csv_event_file}\",\"../data/test_genie_NuTau_${energy}.0_GeV_event_info_pdf.csv\",true)"
+        genie -l -b -q "grv98lo_pdf.C(\"../data/test_genie_NuTau_${energy}.0_GeV_event_info_f.csv\",\"../data/test_genie_NuTau_${energy}.0_GeV_event_info_pdf.csv\",true)"
         # Calculate the Sigma values of for RES events using the Berger-Sehgal model
         #  This adds two new columns: sigmm, sigpp
         #  The longitudinal polarization is then given by (sigmm - sigpp) / (sigmm + sigpp)
@@ -96,23 +100,23 @@ for energy in "${energy_list[@]}"; do
     fi
 
     if [ $start_step -lt 5 ]; then
-        echo "Running Tauola tau decay simulation with realistic polarization..."
-        # Run the Tauola tau decay simulation, with polarization. The columns are currently set to 1, 2, 3, as given as output from tau_polarization.py
-        ./decay.o $input_dat_file $output_dat_file 1 2 3 $output_csv_file $decay_flags &> ../logfiles/icecube_tauola_run_e$energy$file_end.log
-    fi
-
-    if [ $start_step -lt 6 ]; then
         echo "Running Tauola tau decay simulation without polarization..."
         # Run the Tauola tau decay simulation, without polarization
         ./decay.o $input_dat_file $output_dat_file_nopol 0 0 0 $decay_flags &> ../logfiles/icecube_tauola_run_e${energy}_nopol.log
     fi
 
-    if [ $start_step -lt 7 ]; then
+    if [ $start_step -lt 6 ]; then
         echo "Running Tauola tau decay simulation with fully left-handed polarization..."
         # Run the Tauola tau decay simulation, without polarization
         ./decay.o $input_dat_file $output_dat_file_lpol 0 0 -1 $decay_flags &> ../logfiles/icecube_tauola_run_e${energy}_lpol.log
     fi
     
+    if [ $start_step -lt 7 ]; then
+        echo "Running Tauola tau decay simulation with realistic polarization..."
+        # Run the Tauola tau decay simulation, with polarization. The columns are currently set to 1, 2, 3, as given as output from tau_polarization.py
+        ./decay.o $input_dat_file $output_dat_file 1 2 3 $output_csv_file $decay_flags &> ../logfiles/icecube_tauola_run_e$energy$file_end.log
+    fi
+
     # if [ $start_step -lt 6 ]; then
     #     echo "Running Tauola tau decay simulation with fully right-handed polarization..."
     #     # Run the Tauola tau decay simulation, without polarization
