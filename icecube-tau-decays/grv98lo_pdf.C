@@ -24,9 +24,6 @@ int grv98lo_pdf(std::string input_file, std::string output_file, bool charm_corr
     
     PDF* fPDF =  new PDF();
     fPDF->SetModel(pdf_model);
-
-    // Charm mass, in GeV, according to Wikipedia
-    const double fMc = 1.27;
     
     // Open input file, and read the first line. 
     std::ifstream file(input_file);
