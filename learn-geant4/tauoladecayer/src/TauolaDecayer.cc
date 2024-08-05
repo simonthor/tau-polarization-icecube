@@ -131,7 +131,7 @@ G4DecayProducts* TauolaDecayer::ImportDecayProducts(const G4Track& track)
    double polx = 0.;
    double poly = 0.;
    double polz = 0.;
-   
+
    Tauolapp::Tauola::decayOne(tau, 
       true, // This will first undecay the particle and then decay it again. In this case, it should not have an effect if it is true or false, since we manually defined the particle
       polx, poly, polz);
@@ -151,6 +151,9 @@ G4DecayProducts* TauolaDecayer::ImportDecayProducts(const G4Track& track)
       Tauolapp::TauolaHEPEVTParticle* p = evt->getParticle(ip);
       // only select final state decay products (direct or via subsequent decays);
       // skip all others
+      // There is a strange bug in Tauola where the status is not set correctly 
+      // for W bosons (PDG = 24) and a_1 mesons (PDG ID = 20213) when using HEPEVT and lab frame polarization.
+      // This is a workaround to skip these particles.
       if ((p->getStatus() != 1) || (abs(p->getPdgID()) == 24) || (abs(p->getPdgID()) == 20213)) continue;
       
       G4ParticleDefinition* pddec = 
