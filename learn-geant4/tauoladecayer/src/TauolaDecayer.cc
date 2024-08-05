@@ -78,9 +78,6 @@ TauolaDecayer::~TauolaDecayer()
 
 G4DecayProducts* TauolaDecayer::ImportDecayProducts(const G4Track& track)
 {
-
-   Tauolapp::TauolaHEPEVTEvent * evt = new Tauolapp::TauolaHEPEVTEvent();
-   
    G4cout << "Tauola decayer is called\n";
 
    G4ParticleDefinition* pd = track.GetDefinition();
@@ -108,6 +105,8 @@ G4DecayProducts* TauolaDecayer::ImportDecayProducts(const G4Track& track)
       return dproducts;
    }
 
+   Tauolapp::TauolaHEPEVTEvent * evt = new Tauolapp::TauolaHEPEVTEvent();
+
    // NOTE: Energy should be in GeV 
    // TauolaHEPEVTParticle 	( 	int  	pdgid, int status, double px, double py, double pz, double e, double m, int ms, int me, int ds, int de )	
    Tauolapp::TauolaHEPEVTParticle *tau  = new Tauolapp::TauolaHEPEVTParticle(pdgid, 1, 
@@ -118,11 +117,13 @@ G4DecayProducts* TauolaDecayer::ImportDecayProducts(const G4Track& track)
                                                          pd->GetPDGMass() / CLHEP::GeV,
                                                          -1, -1, -1, -1);
    evt->addParticle(tau);
+
    // If the polarization vector is defined in the lab frame, boost is set to true.
    // NOTE it might have the same effect if this is called only once, instead of before every decay. This is however unclear from the Tauola documentation
    if (boost) {
       Tauolapp::Tauola::setBoostRoutine(simpleBoost);
    }
+
    // specify polarization, if any
    // TODO read this from Geant4, from a file, or something. 
    // It is possible to set the polarization of particles in Geant4 (even though it is not used).
@@ -150,14 +151,8 @@ G4DecayProducts* TauolaDecayer::ImportDecayProducts(const G4Track& track)
       Tauolapp::TauolaHEPEVTParticle* p = evt->getParticle(ip);
       // only select final state decay products (direct or via subsequent decays);
       // skip all others
-      //
-      // NOTE: in general, final state decays products will have 
-      //       positive status code between 91 and 99 
-      //       (in case such information could be of interest in the future)
-      //
-      // TODO check that this status check actually works
-      if (p->getStatus() != 1 ) continue;
-            
+      if ((p->getStatus() != 1) || (abs(p->getPdgID()) == 24) || (abs(p->getPdgID()) == 20213)) continue;
+      
       G4ParticleDefinition* pddec = 
          G4ParticleTable::GetParticleTable()->FindParticle(p->getPdgID());
       if ( !pddec ) {

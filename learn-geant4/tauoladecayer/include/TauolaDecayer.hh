@@ -51,7 +51,7 @@ class TauolaDecayer : public G4VExtDecayer
 
       static void simpleBoost(Tauolapp::TauolaParticle*, Tauolapp::TauolaParticle*);
    private:
-      bool boost = false;
+      bool boost = true;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

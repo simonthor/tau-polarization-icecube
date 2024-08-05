@@ -51,7 +51,7 @@ void ActionInitialization::Build() const
    //       Geant4 native decay tables are overriden with Tauola-bases ones
    //
    //                                prt_name prt_mom
-  int pdg_id = 4122;
+  int pdg_id = 15;
   SetUserAction( new SingleParticleGun(pdg_id, 25.0) );
   SetUserAction(new TrackingAction(pdg_id));
 
