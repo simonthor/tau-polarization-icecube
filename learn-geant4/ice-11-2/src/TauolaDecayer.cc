@@ -150,9 +150,9 @@ G4DecayProducts* TauolaDecayer::ImportDecayProducts(const G4Track& track)
       // only select final state decay products (direct or via subsequent decays);
       // skip all others
       // There is a strange bug in Tauola where the status is not set correctly 
-      // for W bosons (PDG = 24) and a_1 mesons (PDG ID = 20213) when using HEPEVT and lab frame polarization.
+      // for W bosons (PDG = 24), a_1 mesons (PDG ID = 20213) and K*+ mesons (PDG ID = 323) when using HEPEVT and lab frame polarization.
       // This is a workaround to skip these particles.
-      if ((p->getStatus() != 1) || (abs(p->getPdgID()) == 24) || (abs(p->getPdgID()) == 20213)) continue;
+      if ((p->getStatus() != 1) || (abs(p->getPdgID()) == 24) || (abs(p->getPdgID()) == 20213) || (abs(p->getPdgID()) == 323)) continue;
             
       G4ParticleDefinition* pddec = 
          G4ParticleTable::GetParticleTable()->FindParticle(p->getPdgID());
