@@ -347,9 +347,12 @@ def calculate_pol_all():
         particle_info = pd.read_csv(f"../data/test_genie_NuTau_{e}.0_GeV_particles.csv")
         event_info = pd.read_csv(f"../data/test_genie_NuTau_{e}.0_GeV_event_info_sig.csv")
     
-        pols = calc_pol(all_event_infos, e)
+        pols = calc_pol(particle_info, event_info)
         
         all_pols[e] = pols
+        all_event_infos[e] = event_info
+
+    return all_pols, all_event_infos
     
 
 def calc_pol(particle_info, event_info):
