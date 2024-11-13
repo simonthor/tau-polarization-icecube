@@ -17,7 +17,7 @@ def polarization_vector(
         x: np.ndarray = None, 
         W: np.ndarray = None, 
         charm: np.ndarray = None, 
-        pdfvalues: pd.DataFrame = None,
+        structure_function_values: pd.DataFrame = None,
         res_sigs: pd.DataFrame = None):
     """Calculate the polarization vector of the tau lepton that is produced in neutrino-nucleon scattering.
     
@@ -37,7 +37,7 @@ def polarization_vector(
         charm: Whether a charm quark is produced in the interaction or not.
             Only used for DIS interactions.
             Must be an array of bools that is the same size as the 4-vectors. 
-        pdfvalues: The PDF values for the specific neutrino-nucleus interaction.
+        structure_function_values: The PDF values for the specific neutrino-nucleus interaction.
             Only used for DIS interactions.
             Must be some kind of map from the quark PDG ID (all values from -6 to 6, excluding 0). 
             Can e.g. be a pandas dataframe with the columns being the PDG ID and the rows being the values for each event, 
@@ -110,14 +110,14 @@ def polarization_vector(
     elif int_type == "dis":
         if charm is None:
             raise ValueError("charm parameter must be set to an array of bools of the same size as the 4-vectors")
-        if pdfvalues is None:
-            raise ValueError("pdfvalues parameter must be set to a map from the quark PDG ID to the PDF values")
+        if structure_function_values is None:
+            raise ValueError("structure_function_values parameter must be set to a map from the quark PDG ID to the PDF values")
         
-        W1 = W1dis(x, Q2, p, q, M, charm, pdfvalues)
-        W2 = W2dis(x, Q2, p, q, M, charm, pdfvalues)
-        W3 = W3dis(x, Q2, p, q, M, charm, pdfvalues)
-        W4 = W4dis(x, Q2, p, q, M, charm, pdfvalues)
-        W5 = W5dis(x, Q2, p, q, M, charm, pdfvalues)
+        W1 = Wndis_f(x, Q2, p, q, M, charm, structure_function_values, 1)
+        W2 = Wndis_f(x, Q2, p, q, M, charm, structure_function_values, 2)
+        W3 = Wndis_f(x, Q2, p, q, M, charm, structure_function_values, 3)
+        W4 = Wndis_f(x, Q2, p, q, M, charm, structure_function_values, 4)
+        W5 = Wndis_f(x, Q2, p, q, M, charm, structure_function_values, 5)
 
     else:
         raise ValueError(f"Unsupported interaction type {int_type = }")
@@ -312,81 +312,27 @@ def mass_corrected_xi(x, Q2, charm):
 
     return xi
 
-def W1dis(x, Q2, p, q, M, charm, pdfvalues):
-    """The first structure function for DIS interactions.
-    See eq. 53, 54a in Hagiwara et al. (2003)"""
-    xi = mass_corrected_xi(x, Q2, charm)
-    return (
-        # Correction, see eq. 55 in tau polarization paper. 
-        (1 + xi/w(p, q, M)) * 
-        np.sum([pdfvalues[quark] / x for quark in [*range(1, 7), *range(-6, 0)]], axis=0) # F1
-    )
-
-def W2dis(x, Q2, p, q, M, charm, pdfvalues):
-    """The second structure function for DIS interactions.
-    See eq. 53, 54b in Hagiwara et al. (2003)"""
-    xi = mass_corrected_xi(x, Q2, charm)
-    return (
-        1/w(p, q, M) 
-        * 2 * np.sum([xi * pdfvalues[quark] / x for quark in [*range(1, 7), *range(-6, 0)]], axis=0) # F2
-    )
-
-def W3dis(x, Q2, p, q, M, charm, pdfvalues):
-    """The third structure function for DIS interactions.
-    See eq. 53, 54c in Hagiwara et al. (2003)"""
-    xi = mass_corrected_xi(x, Q2, charm)
-    return 1/w(p, q, M) * 2 * (
-        np.sum([pdfvalues[quark] / x for quark in range(1, 7)], axis=0)
-        - np.sum([pdfvalues[quark] / x for quark in range(-6, 0)], axis=0)
-    )
-
-def W4dis(x, Q2, p, q, M, charm, pdfvalues):
-    """The fourth structure function for DIS interactions.
-    See eq. 53, 54d in Hagiwara et al. (2003)"""
-    return 0
-
-def W5dis(x, Q2, p, q, M, charm, pdfvalues):
-    """The fifth structure function for DIS interactions.
-    See eq. 53, 54e in Hagiwara et al. (2003)"""
-    xi = mass_corrected_xi(x, Q2, charm)
+def Wndis_f(x, Q2, p, q, M, charm, fvalues, n):
+    """Calculate the nth structure function using the nth form factor.
     
-    return 1/w(p, q, M) * 2 * np.sum([pdfvalues[quark] / x for quark in [*range(1, 7), *range(-6, 0)]], axis=0) # W1dis(x, Q2, p, q, M, charm) * 
+    Args:
+        x (np.array): The Bjorken x values
+        Q2 (np.array): The four-momentum transfer squared
+        p (np.array): The four-momentum of the nucleon
+        q (np.array): The four-momentum of the W boson (Q2 = -q^2)
+        M (np.array): The mass of the nucleon
+        charm (np.array): Ignored. Only included for backwards-compatibility
+        fvalues (dict, pd.DataFrame): A mappable object containing the form factor values F1, F2, F3, F4, F5
+        n (int): The structure function to calculate. Should be a number between 1 and 5.
+    
+    Returns:
+        np.array: The values of the structure function W
+    """
+    if n == 1:
+        xi = mass_corrected_xi(x, Q2, charm)
+        return (1+xi/w(p, q, M)) * fvalues[f"F{n}"].values
 
-def get_pdf_values(dis_events):
-    pdfvalues = {}
-
-    assert dis_events.loc[:, "fuv":"fc"].notnull().all().all()
-
-    pdfvalues["event_num"] = dis_events["event_num"]
-    # down-quark
-    pdfvalues[1] = (dis_events["fdv"] + dis_events["fds"]).values
-    # up-quark
-    pdfvalues[2] = (dis_events["fuv"] + dis_events["fus"]).values
-    # strange-quark
-    pdfvalues[3] = dis_events["fs"].values
-    # charm-quark
-    pdfvalues[4] = dis_events["fc"].values
-    # bottom-quark
-    pdfvalues[5] = np.zeros(dis_events.shape[0])
-    # top-quark
-    pdfvalues[6] = np.zeros(dis_events.shape[0])
-
-    # dbar-quark
-    pdfvalues[-1] = dis_events["fds"].values
-    # ubar-quark
-    pdfvalues[-2] = dis_events["fus"].values
-    # sbar-quark
-    pdfvalues[-3] = dis_events["fs"].values
-    # cbar-quark
-    pdfvalues[-4] = dis_events["fc"].values
-    # bbar-quark
-    pdfvalues[-5] = np.zeros(dis_events.shape[0])
-    # tbar-quark
-    pdfvalues[-6] = np.zeros(dis_events.shape[0])
-
-    pdfvalues = pd.DataFrame(pdfvalues)
-
-    return pdfvalues
+    return 1/w(p, q, M) * fvalues[f"F{n}"].values
 
 
 def calculate_pol_all():
@@ -435,7 +381,7 @@ def calc_pol(particle_info, event_info):
         res_sigs = None
 
         if int_type == "dis":
-            df = get_pdf_values(events)
+            df = events.loc[:, "F1":"F5"]
         elif int_type == "res":
             res_sigs = events.loc[:, ["sigmm", "sigpp", "sigmp"]]
             
@@ -450,7 +396,7 @@ def calc_pol(particle_info, event_info):
                 x=x,
                 W=W,
                 charm=events["charm"].values,
-                pdfvalues=df,
+                structure_function_values=df,
                 res_sigs=res_sigs
             ))
 
@@ -476,7 +422,7 @@ def calc_pol(particle_info, event_info):
         # Fill in the missing polarizations with 0, i.e. assume that they are unpolarized.
     events_not_in_pols = event_info.loc[~event_info["event_num"].isin(pols["event_num"].values), "event_num"].unique()
         
-        # TODO for other interactions (which in practice is just coherent scattering), we assume unpolarized (or fully left-handed is a better approximation perhaps?)
+    # NOTE for other interactions (which in practice is just coherent scattering), we assume unpolarized (or fully left-handed is a better approximation perhaps?)
     pols = pd.concat([pols, pd.DataFrame({"event_num": events_not_in_pols, "polx": np.zeros(events_not_in_pols.shape[0]), "poly": np.zeros(events_not_in_pols.shape[0]), "polz": np.zeros(events_not_in_pols.shape[0])})])
     
     if events_not_in_pols.shape[0] > 0:
