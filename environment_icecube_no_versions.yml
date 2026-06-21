@@ -1,0 +1,13 @@
+name: icecube
+channels:
+  - defaults
+dependencies:
+  - cmake
+  - cxx-compiler
+  - fortran-compiler
+  - geant4
+  - python
+  - tauloa
+  - pythia8
+  - pandas
+prefix: /home/simon/miniconda3/envs/icecube
